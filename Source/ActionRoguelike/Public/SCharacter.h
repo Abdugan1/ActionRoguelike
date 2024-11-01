@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "SCharacter.generated.h"
 
+class UAnimMontage;
+class USInteractionComponent;
 class UCameraComponent;
 class USpringArmComponent;
 
@@ -15,8 +17,13 @@ class ACTIONROGUELIKE_API ASCharacter : public ACharacter
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Attack")
 	TSubclassOf<AActor> ProjectileClass;
+
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	UAnimMontage* AttackAnim;
+
+	FTimerHandle TimerHandlePrimaryAttack;
 
 public:
 	// Sets default values for this character's properties
@@ -32,13 +39,20 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* CameraComp;
 
+	UPROPERTY(VisibleAnywhere)
+	USInteractionComponent* InteractionComponent;
+
 	void MoveForward(float X);
 
 	void MoveRight(float X);
 
 	void PrimaryAttack();
+	void PrimaryAttackElapsedTime();
+
+	void PrimaryInteract();
 
 	void DoJump();
+
 
 public:	
 	// Called every frame

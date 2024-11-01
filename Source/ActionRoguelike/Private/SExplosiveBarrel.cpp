@@ -26,8 +26,13 @@ ASExplosiveBarrel::ASExplosiveBarrel()
 	RadialForce->bImpulseVelChange = true;
 }
 
-void ASExplosiveBarrel::Explode(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+void ASExplosiveBarrel::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	FVector NormalImpulse, const FHitResult& Hit)
+{
+	Explode();
+}
+
+void ASExplosiveBarrel::Explode()
 {
 	RadialForce->FireImpulse();
 }
@@ -36,7 +41,7 @@ void ASExplosiveBarrel::Explode(UPrimitiveComponent* HitComponent, AActor* Other
 void ASExplosiveBarrel::BeginPlay()
 {
 	Super::BeginPlay();
-	StaticMesh->OnComponentHit.AddDynamic(this, &ASExplosiveBarrel::Explode);
+	StaticMesh->OnComponentHit.AddDynamic(this, &ASExplosiveBarrel::OnCollisionHit);
 }
 
 // Called every frame
