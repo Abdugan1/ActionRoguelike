@@ -10,6 +10,7 @@
 #include "EntitySystem/MovieSceneEntitySystemRunner.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -61,24 +62,61 @@ void ASCharacter::MoveRight(float X)
 	AddMovementInput(RightVector, X);
 }
 
-void ASCharacter::PrimaryAttack()
+void ASCharacter::Attack(const TSubclassOf<AActor> &ProjectileClass)
 {
 	PlayAnimMontage(AttackAnim);
 
-	GetWorldTimerManager().SetTimer(TimerHandlePrimaryAttack, this, &ASCharacter::PrimaryAttackElapsedTime, 0.2f);
+	FTimerDelegate TimerCallback;
+	TimerCallback.BindLambda([this, &ProjectileClass]()
+		{
+			AttackElapsedTime(ProjectileClass);
+		}
+	);
+
+
+	GetWorldTimerManager().SetTimer(TimerHandlePrimaryAttack, TimerCallback, 0.2f, false);
 }
 
-void ASCharacter::PrimaryAttackElapsedTime()
+void ASCharacter::AttackElapsedTime(const TSubclassOf<AActor> &ProjectileClass)
 {
 	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
 
-	FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation);
+	FHitResult Hit;
+
+	FVector Start = CameraComp->GetComponentLocation();
+	FVector End = Start + (GetControlRotation().Vector() * 100000);
+
+	FCollisionObjectQueryParams ObjectQueryParams;
+	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
+
+	bool HitSomething = GetWorld()->LineTraceSingleByObjectType(Hit, Start, End, ObjectQueryParams);
+
+	FRotator Rotation = HitSomething ? UKismetMathLibrary::FindLookAtRotation(HandLocation, Hit.ImpactPoint)
+									 : UKismetMathLibrary::FindLookAtRotation(HandLocation, Hit.TraceEnd);
+
+	FTransform SpawnTM = FTransform(Rotation, HandLocation);
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParams.Instigator = this;
 
 	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+}
+
+void ASCharacter::PrimaryAttack()
+{
+	Attack(PrimaryProjectileClass);
+}
+
+void ASCharacter::BlackholeAttack()
+{
+	Attack(BlackholeProjectileClass);
+}
+
+void ASCharacter::DashAttack()
+{
+	Attack(DashProjectileClass);
 }
 
 void ASCharacter::PrimaryInteract()
@@ -127,6 +165,8 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAxis("Lookup", this, &APawn::AddControllerPitchInput);
 
 	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this, &ASCharacter::PrimaryAttack);
+	PlayerInputComponent->BindAction("BlackholeAttack", IE_Pressed, this, &ASCharacter::BlackholeAttack);
+	PlayerInputComponent->BindAction("DashAttack", IE_Pressed, this, &ASCharacter::DashAttack);
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASCharacter::DoJump);
 

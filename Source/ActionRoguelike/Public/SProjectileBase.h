@@ -6,6 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "SProjectileBase.generated.h"
 
+class UProjectileMovementComponent;
+class USphereComponent;
+
 UCLASS()
 class ACTIONROGUELIKE_API ASProjectileBase : public AActor
 {
@@ -16,11 +19,15 @@ public:
 	ASProjectileBase();
 
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	USphereComponent* SphereComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UProjectileMovementComponent* MovementComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UParticleSystemComponent* EffectComp;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 };

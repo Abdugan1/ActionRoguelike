@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "SCharacter.generated.h"
 
+class ASProjectileBase;
 class UAnimMontage;
 class USInteractionComponent;
 class UCameraComponent;
@@ -15,16 +16,6 @@ UCLASS()
 class ACTIONROGUELIKE_API ASCharacter : public ACharacter
 {
 	GENERATED_BODY()
-
-protected:
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	TSubclassOf<AActor> ProjectileClass;
-
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	UAnimMontage* AttackAnim;
-
-	FTimerHandle TimerHandlePrimaryAttack;
-
 public:
 	// Sets default values for this character's properties
 	ASCharacter();
@@ -33,6 +24,27 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	void MoveForward(float X);
+	void MoveRight(float X);
+	void DoJump();
+
+	void PrimaryAttack();
+	void BlackholeAttack();
+	void DashAttack();
+
+	void Attack(const TSubclassOf<AActor> &ProjectileClass);
+	void AttackElapsedTime(const TSubclassOf<AActor> &ProjectileClass);
+
+	void PrimaryInteract();
+
+public:	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+protected:
 	UPROPERTY(VisibleAnywhere)
 	USpringArmComponent* SpringArmComp;
 
@@ -42,23 +54,19 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	USInteractionComponent* InteractionComponent;
 
-	void MoveForward(float X);
+protected:
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	TSubclassOf<AActor> PrimaryProjectileClass;
 
-	void MoveRight(float X);
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	TSubclassOf<AActor> BlackholeProjectileClass;
 
-	void PrimaryAttack();
-	void PrimaryAttackElapsedTime();
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	TSubclassOf<AActor> DashProjectileClass;
 
-	void PrimaryInteract();
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	UAnimMontage* AttackAnim;
 
-	void DoJump();
-
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	FTimerHandle TimerHandlePrimaryAttack;
 
 };
