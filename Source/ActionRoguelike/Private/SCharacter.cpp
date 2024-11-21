@@ -4,6 +4,7 @@
 #include "SCharacter.h"
 
 #include "DiffResults.h"
+#include "SAttributeComponent.h"
 #include "SInteractionComponent.h"
 #include "TimerManager.h"
 #include "Camera/CameraComponent.h"
@@ -26,6 +27,8 @@ ASCharacter::ASCharacter()
 	CameraComp->SetupAttachment(SpringArmComp);
 
 	InteractionComponent = CreateDefaultSubobject<USInteractionComponent>("InteractionComponent");
+
+	AttributeComponent = CreateDefaultSubobject<USAttributeComponent>("AttributeComponent");
 
 	GetCharacterMovement()->bOrientRotationToMovement = true; // true
 
@@ -84,7 +87,7 @@ void ASCharacter::AttackElapsedTime(const TSubclassOf<AActor> &ProjectileClass)
 	FHitResult Hit;
 
 	FVector Start = CameraComp->GetComponentLocation();
-	FVector End = Start + (GetControlRotation().Vector() * 100000);
+	FVector End = Start + (GetControlRotation().Vector() * 1000);
 
 	FCollisionObjectQueryParams ObjectQueryParams;
 	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);

@@ -4,6 +4,7 @@
 #include "SExplosiveBarrel.h"
 
 #include "PhysicsEngine/RadialForceComponent.h"
+#include "SAttributeComponent.h"
 
 // Sets default values
 ASExplosiveBarrel::ASExplosiveBarrel()
@@ -27,6 +28,14 @@ void ASExplosiveBarrel::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor
 	FVector NormalImpulse, const FHitResult& Hit)
 {
 	Explode();
+	if (OtherActor)
+	{
+		auto AttributeComponent = Cast<USAttributeComponent>(OtherActor->GetComponentByClass(USAttributeComponent::StaticClass()));
+		if (AttributeComponent)
+		{
+			AttributeComponent->ApplyHealthChange(-80);
+		}
+	}
 }
 
 void ASExplosiveBarrel::Explode()

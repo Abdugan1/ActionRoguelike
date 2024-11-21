@@ -37,8 +37,6 @@ void ASDashProjectile::DoTeleportation()
 {
 	Explode();
 	GetWorldTimerManager().SetTimer(TimerHandleTeleport, this, &ASDashProjectile::TeleportInstigator, 0.2f, false);
-	TeleportInstigator();
-	Destroy();
 }
 
 void ASDashProjectile::Explode()
@@ -55,5 +53,7 @@ void ASDashProjectile::TeleportInstigator()
 
 	bool SuccessTeleport = GetInstigator()->TeleportTo(Location, Rotation);
 	UE_LOG(LogTemp, Warning, TEXT("Success: %s"), (SuccessTeleport ? TEXT("True") : TEXT("False")));
+
+	Destroy();
 }
 
