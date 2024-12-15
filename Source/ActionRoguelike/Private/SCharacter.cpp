@@ -13,7 +13,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
-// Sets default values
+
 ASCharacter::ASCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -33,14 +33,18 @@ ASCharacter::ASCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true; // true
 
 	bUseControllerRotationYaw = false; // false
+
+	CrosshairAttackLineSweepLenght = 5000;
+	CrosshairAttackLineSweepShapeRadius = 20;
 } 
 
-// Called when the game starts or when spawned
+
 void ASCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
+
 
 void ASCharacter::MoveForward(float X)
 {
@@ -49,6 +53,7 @@ void ASCharacter::MoveForward(float X)
 	ControlRot.Roll = 0.0f;
 	AddMovementInput(ControlRot.Vector(), X);
 }
+
 
 void ASCharacter::MoveRight(float X)
 {
@@ -65,6 +70,7 @@ void ASCharacter::MoveRight(float X)
 	AddMovementInput(RightVector, X);
 }
 
+
 void ASCharacter::Attack(const TSubclassOf<AActor> &ProjectileClass)
 {
 	PlayAnimMontage(AttackAnim);
@@ -80,37 +86,59 @@ void ASCharacter::Attack(const TSubclassOf<AActor> &ProjectileClass)
 	GetWorldTimerManager().SetTimer(TimerHandlePrimaryAttack, TimerCallback, 0.2f, false);
 }
 
+
 void ASCharacter::AttackElapsedTime(const TSubclassOf<AActor> &ProjectileClass)
 {
-	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+	if (ensureAlways(ProjectileClass))
+	{
+		FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
 
-	FHitResult Hit;
+		FHitResult Hit;
 
-	FVector Start = CameraComp->GetComponentLocation();
-	FVector End = Start + (GetControlRotation().Vector() * 1000);
+		FVector TraceStart = CameraComp->GetComponentLocation();
+		FVector TraceEnd = TraceStart + (GetControlRotation().Vector() * CrosshairAttackLineSweepLenght);
 
-	FCollisionObjectQueryParams ObjectQueryParams;
-	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
-	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		SpawnParams.Instigator = this;
 
-	bool HitSomething = GetWorld()->LineTraceSingleByObjectType(Hit, Start, End, ObjectQueryParams);
+		FCollisionShape Shape;
+		Shape.SetSphere(CrosshairAttackLineSweepShapeRadius);
 
-	FRotator Rotation = HitSomething ? UKismetMathLibrary::FindLookAtRotation(HandLocation, Hit.ImpactPoint)
-									 : UKismetMathLibrary::FindLookAtRotation(HandLocation, Hit.TraceEnd);
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
 
-	FTransform SpawnTM = FTransform(Rotation, HandLocation);
+		FCollisionObjectQueryParams ObjectQueryParams;
+		ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+		ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
+		ObjectQueryParams.AddObjectTypesToQuery(ECC_Pawn);
 
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	SpawnParams.Instigator = this;
+		bool HitSomething = GetWorld()->SweepSingleByObjectType(Hit, TraceStart, TraceEnd, FQuat::Identity, ObjectQueryParams, Shape, Params);
 
-	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+		FRotator ProjectileRotation;
+		if (HitSomething)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Hit something"));
+			ProjectileRotation = UKismetMathLibrary::FindLookAtRotation(HandLocation, Hit.ImpactPoint);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Does not hit something"));
+			ProjectileRotation = UKismetMathLibrary::FindLookAtRotation(HandLocation, Hit.TraceEnd);
+		}
+
+		FTransform SpawnTM = FTransform(ProjectileRotation, HandLocation);
+
+		GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+	}
 }
+
 
 void ASCharacter::PrimaryAttack()
 {
 	Attack(PrimaryProjectileClass);
 }
+
 
 void ASCharacter::BlackholeAttack()
 {
@@ -122,18 +150,20 @@ void ASCharacter::DashAttack()
 	Attack(DashProjectileClass);
 }
 
+
 void ASCharacter::PrimaryInteract()
 {
 	if (InteractionComponent)
 		InteractionComponent->PrimaryInteract();
 }
 
+
 void ASCharacter::DoJump()
 {
 	Jump();
 }
 
-// Called every frame
+
 void ASCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -156,7 +186,7 @@ void ASCharacter::Tick(float DeltaTime)
 
 }
 
-// Called to bind functionality to input
+
 void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);

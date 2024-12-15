@@ -19,15 +19,29 @@ public:
 	ASProjectileBase();
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, Category="Effects")
+	UParticleSystem* ImpactVFX;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	USphereComponent* SphereComp;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	UProjectileMovementComponent* MovementComp;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	UParticleSystemComponent* EffectComp;
 
+protected:
+	UFUNCTION()
+	void OnActorHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void Explode();
+
+protected:
 	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	//virtual void BeginPlay() override;
+
+public:
+	virtual void PostInitializeComponents() override;
 };

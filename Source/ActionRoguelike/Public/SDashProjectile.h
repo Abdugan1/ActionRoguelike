@@ -19,25 +19,26 @@ public:
 	// Sets default values for this actor's properties
 	ASDashProjectile();
 
+
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	virtual void PostInitializeComponents() override;
 
-	UFUNCTION()
-	void DoTeleportationOnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	virtual void Explode_Implementation() override;
 
-	void DoTeleportation();
-
-	void Explode();
 	void TeleportInstigator();
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UParticleSystem* ExplodeEffect;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Teleport")
+	float DetonateDelay;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Teleport")
+	float TeleportDelay;
+
 protected:
-	FTimerHandle TimerHandleExplode;
-	FTimerHandle TimerHandleTeleport;
+
+	FTimerHandle TimerHandle_DelayedDetonate;
 
 };

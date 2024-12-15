@@ -68,7 +68,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	TSubclassOf<AActor> DashProjectileClass;
 
-	UPROPERTY(EditAnywhere, Category = "Attack")
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	float CrosshairAttackLineSweepLenght;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	float CrosshairAttackLineSweepShapeRadius;
+
+	UPROPERTY(EditAnywhere, Category = "Animation")
 	UAnimMontage* AttackAnim;
 
 	FTimerHandle TimerHandlePrimaryAttack;

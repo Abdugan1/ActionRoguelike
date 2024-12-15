@@ -3,56 +3,64 @@
 
 #include "SDashProjectile.h"
 
-#include "Components/SphereComponent.h"
+
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-// Sets default values
+
 ASDashProjectile::ASDashProjectile()
 {
+	DetonateDelay = 0.2f;
+	TeleportDelay = 0.2f;
+
+	MovementComp->InitialSpeed = 6000.0f;
 }
 
-// Called when the game starts or when spawned
+
 void ASDashProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	GetWorldTimerManager().SetTimer(TimerHandleExplode, this, &ASDashProjectile::DoTeleportation, 0.2f, false);
+
+	GetWorldTimerManager().SetTimer(
+		TimerHandle_DelayedDetonate, 
+		this, 
+		&ASDashProjectile::Explode, 
+		DetonateDelay
+	);
 }
 
-void ASDashProjectile::PostInitializeComponents()
+void ASDashProjectile::Explode_Implementation()
 {
-	Super::PostInitializeComponents();
+	GetWorldTimerManager().ClearTimer(TimerHandle_DelayedDetonate);
 
-	SphereComp->OnComponentHit.AddDynamic(this, &ASDashProjectile::DoTeleportationOnHit);
-}
+	UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, GetActorLocation(), GetActorRotation());
 
-void ASDashProjectile::DoTeleportationOnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
-	GetWorldTimerManager().ClearTimer(TimerHandleExplode);
-	DoTeleportation();
-}
+	EffectComp->DeactivateSystem();
 
-void ASDashProjectile::DoTeleportation()
-{
-	Explode();
-	GetWorldTimerManager().SetTimer(TimerHandleTeleport, this, &ASDashProjectile::TeleportInstigator, 0.2f, false);
-}
-
-void ASDashProjectile::Explode()
-{
 	MovementComp->StopMovementImmediately();
-	EffectComp->SetVisibility(false);
-	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplodeEffect, GetActorLocation(), GetActorRotation());
+	SetActorEnableCollision(false);
+
+	FTimerHandle TimerHandle_DelayedTeleport;
+	GetWorldTimerManager().SetTimer(
+		TimerHandle_DelayedTeleport, 
+		this,
+		&ASDashProjectile::TeleportInstigator, 
+		TeleportDelay
+	);
+
+	// Do not call this. We need the projectile to teleport the instigator. Only after teleporting the instigator can we 
+	//Super::Explode_Implementation();
 }
+
 
 void ASDashProjectile::TeleportInstigator()
 {
-	FVector Location = GetActorLocation();
-	FRotator Rotation = GetActorRotation();
-
-	bool SuccessTeleport = GetInstigator()->TeleportTo(Location, Rotation);
-	UE_LOG(LogTemp, Warning, TEXT("Success: %s"), (SuccessTeleport ? TEXT("True") : TEXT("False")));
+	auto ActorToTeleport = GetInstigator();
+	if (ensure(ActorToTeleport))
+	{
+		ActorToTeleport->TeleportTo(GetActorLocation(), ActorToTeleport->GetActorRotation(), false, false);
+	}
 
 	Destroy();
 }
