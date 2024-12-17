@@ -36,7 +36,15 @@ ASCharacter::ASCharacter()
 
 	CrosshairAttackLineSweepLenght = 5000;
 	CrosshairAttackLineSweepShapeRadius = 20;
-} 
+}
+
+
+void ASCharacter::PostInitProperties()
+{
+	Super::PostInitProperties();
+
+	AttributeComponent->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHealthChanged);
+}
 
 
 void ASCharacter::BeginPlay()
@@ -155,6 +163,17 @@ void ASCharacter::PrimaryInteract()
 {
 	if (InteractionComponent)
 		InteractionComponent->PrimaryInteract();
+}
+
+
+void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComponent, float NewHealth,
+	float Delta)
+{
+	if (NewHealth <= 0.0f && Delta < 0.0f)
+	{
+		APlayerController* PlayerController = Cast<APlayerController>(GetController());
+		DisableInput(PlayerController);
+	}
 }
 
 

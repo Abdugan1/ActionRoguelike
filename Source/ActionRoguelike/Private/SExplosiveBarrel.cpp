@@ -27,6 +27,7 @@ ASExplosiveBarrel::ASExplosiveBarrel()
 void ASExplosiveBarrel::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	FVector NormalImpulse, const FHitResult& Hit)
 {
+	
 	Explode();
 	if (OtherActor)
 	{

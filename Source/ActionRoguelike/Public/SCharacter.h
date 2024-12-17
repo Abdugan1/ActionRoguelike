@@ -21,6 +21,8 @@ public:
 	// Sets default values for this character's properties
 	ASCharacter();
 
+	virtual void PostInitProperties() override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -37,6 +39,9 @@ protected:
 	void AttackElapsedTime(const TSubclassOf<AActor> &ProjectileClass);
 
 	void PrimaryInteract();
+
+	UFUNCTION()
+	void OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComponent, float NewHealth, float Delta);
 
 public:	
 	// Called every frame

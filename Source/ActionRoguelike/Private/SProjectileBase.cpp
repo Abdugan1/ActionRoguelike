@@ -25,11 +25,14 @@ ASProjectileBase::ASProjectileBase()
 	MovementComp->ProjectileGravityScale = 0;
 }
 
+
 void ASProjectileBase::OnActorHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	FVector NormalImpulse, const FHitResult& Hit)
 {
+	UE_LOG(LogTemp, Log, TEXT("Projectile Hit This Actor: %s"), *OtherActor->GetClass()->GetName());
 	Explode();
 }
+
 
 void ASProjectileBase::Explode_Implementation()
 {
