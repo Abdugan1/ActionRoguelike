@@ -11,16 +11,6 @@ UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ACTIONROGUELIKE_API USInteractionComponent : public UActorComponent
 {
 	GENERATED_BODY()
-
 public:
-	void PrimaryInteract() const;
-
-public:	
-	// Sets default values for this component's properties
-	USInteractionComponent();
-
-protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-		
+	void PrimaryInteract() const;		
 };

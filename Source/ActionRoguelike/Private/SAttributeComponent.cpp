@@ -3,16 +3,17 @@
 
 #include "SAttributeComponent.h"
 
-// Sets default values for this component's properties
+
 USAttributeComponent::USAttributeComponent()
 {
-	Health = 100;
+	HealthMax = 200;
+	Health = HealthMax;
 }
 
 
 bool USAttributeComponent::ApplyHealthChange(float Delta)
 {
-	Health += Delta;
+	Health = FMath::Clamp(Health + Delta, 0, HealthMax);
 
 	OnHealthChanged.Broadcast(nullptr, this, Health, Delta);
 
@@ -23,5 +24,11 @@ bool USAttributeComponent::ApplyHealthChange(float Delta)
 bool USAttributeComponent::IsAlive() const
 {
 	return Health > 0.0f;
+}
+
+
+bool USAttributeComponent::IsFullHealth() const
+{
+	return Health >= HealthMax && FMath::IsNearlyEqual(Health, HealthMax);
 }
 

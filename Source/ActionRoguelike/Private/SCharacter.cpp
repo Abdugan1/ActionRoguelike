@@ -3,21 +3,20 @@
 
 #include "SCharacter.h"
 
-#include "DiffResults.h"
 #include "SAttributeComponent.h"
 #include "SInteractionComponent.h"
 #include "TimerManager.h"
 #include "Camera/CameraComponent.h"
-#include "EntitySystem/MovieSceneEntitySystemRunner.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
 
 ASCharacter::ASCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	//PrimaryActorTick.bCanEverTick = true;
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>("SpringArmComponent");
 	SpringArmComp->bUsePawnControlRotation = true; // true
@@ -44,13 +43,6 @@ void ASCharacter::PostInitProperties()
 	Super::PostInitProperties();
 
 	AttributeComponent->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHealthChanged);
-}
-
-
-void ASCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-	
 }
 
 
@@ -90,7 +82,6 @@ void ASCharacter::Attack(const TSubclassOf<AActor> &ProjectileClass)
 		}
 	);
 
-
 	GetWorldTimerManager().SetTimer(TimerHandlePrimaryAttack, TimerCallback, 0.2f, false);
 }
 
@@ -104,6 +95,7 @@ void ASCharacter::AttackElapsedTime(const TSubclassOf<AActor> &ProjectileClass)
 		FHitResult Hit;
 
 		FVector TraceStart = CameraComp->GetComponentLocation();
+		TraceStart = TraceStart + CrosshairAttackLineSweepShapeRadius;
 		FVector TraceEnd = TraceStart + (GetControlRotation().Vector() * CrosshairAttackLineSweepLenght);
 
 		FActorSpawnParameters SpawnParams;
@@ -120,6 +112,7 @@ void ASCharacter::AttackElapsedTime(const TSubclassOf<AActor> &ProjectileClass)
 		ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
 		ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
 		ObjectQueryParams.AddObjectTypesToQuery(ECC_Pawn);
+		ObjectQueryParams.AddObjectTypesToQuery(ECC_PhysicsBody);
 
 		bool HitSomething = GetWorld()->SweepSingleByObjectType(Hit, TraceStart, TraceEnd, FQuat::Identity, ObjectQueryParams, Shape, Params);
 
@@ -138,6 +131,13 @@ void ASCharacter::AttackElapsedTime(const TSubclassOf<AActor> &ProjectileClass)
 		FTransform SpawnTM = FTransform(ProjectileRotation, HandLocation);
 
 		GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+
+		//
+		UGameplayStatics::SpawnEmitterAttached(
+			CastSpellEffect, 
+			GetMesh(),
+			"Muzzle_01"
+		);
 	}
 }
 
@@ -169,41 +169,39 @@ void ASCharacter::PrimaryInteract()
 void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComponent, float NewHealth,
 	float Delta)
 {
-	if (NewHealth <= 0.0f && Delta < 0.0f)
+	if (Delta < 0.0f)
 	{
-		APlayerController* PlayerController = Cast<APlayerController>(GetController());
-		DisableInput(PlayerController);
+		GetMesh()->SetScalarParameterValueOnMaterials("HitFlashTime", GetWorld()->TimeSeconds);
+		if (NewHealth <= 0.0f)
+		{
+			APlayerController* PlayerController = Cast<APlayerController>(GetController());
+			DisableInput(PlayerController);
+		}
 	}
 }
 
 
-void ASCharacter::DoJump()
-{
-	Jump();
-}
-
-
-void ASCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	//// -- Rotation Visualization -- //
-	//const float DrawScale = 100.0f;
-	//const float Thickness = 5.0f;
-
-	//FVector LineStart = GetActorLocation();
-	//// Offset to the right of pawn
-	//LineStart += GetActorRightVector() * 100.0f;
-	//// Set line end in direction of the actor's forward
-	//FVector ActorDirection_LineEnd = LineStart + (GetActorForwardVector() * 100.0f);
-	//// Draw Actor's Direction
-	//DrawDebugDirectionalArrow(GetWorld(), LineStart, ActorDirection_LineEnd, DrawScale, FColor::Yellow, false, 0.0f, 0, Thickness);
-
-	//FVector ControllerDirection_LineEnd = LineStart + (GetControlRotation().Vector() * 100.0f);
-	//// Draw 'Controller' Rotation ('PlayerController' that 'possessed' this character)
-	//DrawDebugDirectionalArrow(GetWorld(), LineStart, ControllerDirection_LineEnd, DrawScale, FColor::Green, false, 0.0f, 0, Thickness);
-
-}
+//void ASCharacter::Tick(float DeltaTime)
+//{
+//	Super::Tick(DeltaTime);
+//
+//	//// -- Rotation Visualization -- //
+//	//const float DrawScale = 100.0f;
+//	//const float Thickness = 5.0f;
+//
+//	//FVector LineStart = GetActorLocation();
+//	//// Offset to the right of pawn
+//	//LineStart += GetActorRightVector() * 100.0f;
+//	//// Set line end in direction of the actor's forward
+//	//FVector ActorDirection_LineEnd = LineStart + (GetActorForwardVector() * 100.0f);
+//	//// Draw Actor's Direction
+//	//DrawDebugDirectionalArrow(GetWorld(), LineStart, ActorDirection_LineEnd, DrawScale, FColor::Yellow, false, 0.0f, 0, Thickness);
+//
+//	//FVector ControllerDirection_LineEnd = LineStart + (GetControlRotation().Vector() * 100.0f);
+//	//// Draw 'Controller' Rotation ('PlayerController' that 'possessed' this character)
+//	//DrawDebugDirectionalArrow(GetWorld(), LineStart, ControllerDirection_LineEnd, DrawScale, FColor::Green, false, 0.0f, 0, Thickness);
+//
+//}
 
 
 void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -220,7 +218,7 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("BlackholeAttack", IE_Pressed, this, &ASCharacter::BlackholeAttack);
 	PlayerInputComponent->BindAction("DashAttack", IE_Pressed, this, &ASCharacter::DashAttack);
 
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASCharacter::DoJump);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASCharacter::Jump);
 
 	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &ASCharacter::PrimaryInteract);
 }

@@ -3,14 +3,18 @@
 
 #include "SProjectileBase.h"
 
+#include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 
-// Sets default values
+
 ASProjectileBase::ASProjectileBase()
 {
+	ImpactShakeInnerRadius = 100;
+	ImpactShakeOuterRadius = 1000;
+
 	SphereComp = CreateDefaultSubobject<USphereComponent>("SphereComp");
 	SphereComp->SetCollisionProfileName("Projectile");
 	RootComponent = SphereComp;
@@ -23,6 +27,9 @@ ASProjectileBase::ASProjectileBase()
 	MovementComp->bRotationFollowsVelocity = true;
 	MovementComp->bInitialVelocityInLocalSpace = true;
 	MovementComp->ProjectileGravityScale = 0;
+
+	LoopAudioComp = CreateDefaultSubobject<UAudioComponent>("LoopAudioComp");
+	LoopAudioComp->SetupAttachment(SphereComp);
 }
 
 
@@ -38,7 +45,15 @@ void ASProjectileBase::Explode_Implementation()
 {
 	if (ensure(!IsPendingKillPending()))
 	{
+		LoopAudioComp->Deactivate();
+
 		UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, GetActorLocation(), GetActorRotation());
+		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), GetActorRotation());
+		UGameplayStatics::PlayWorldCameraShake(
+			this, ImpactShake, 
+			GetActorLocation(),
+			ImpactShakeInnerRadius, ImpactShakeOuterRadius
+		);
 
 		EffectComp->DeactivateSystem();
 
@@ -49,12 +64,6 @@ void ASProjectileBase::Explode_Implementation()
 	}
 }
 
-//// Called when the game starts or when spawned
-//void ASProjectileBase::BeginPlay()
-//{
-//	Super::BeginPlay();
-//	SphereComp->IgnoreActorWhenMoving(GetInstigator(), true);
-//}
 
 void ASProjectileBase::PostInitializeComponents()
 {

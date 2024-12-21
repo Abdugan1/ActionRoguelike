@@ -24,12 +24,8 @@ public:
 	virtual void PostInitProperties() override;
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
 	void MoveForward(float X);
 	void MoveRight(float X);
-	void DoJump();
 
 	void PrimaryAttack();
 	void BlackholeAttack();
@@ -44,10 +40,6 @@ protected:
 	void OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComponent, float NewHealth, float Delta);
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
@@ -72,6 +64,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	TSubclassOf<AActor> DashProjectileClass;
+
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	UParticleSystem* CastSpellEffect;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Attack")
 	float CrosshairAttackLineSweepLenght;

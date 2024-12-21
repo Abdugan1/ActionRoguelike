@@ -3,12 +3,13 @@
 
 #include "SItemChest.h"
 
+
 void ASItemChest::Interact_Implementation(APawn* InstigatorPawn)
 {
 	LidMesh->SetRelativeRotation(FRotator(TargetPitch, 0, 0));
 }
 
-// Sets default values
+
 ASItemChest::ASItemChest()
 {
 	BaseMesh = CreateDefaultSubobject<UStaticMeshComponent>("BaseMesh");
@@ -20,7 +21,7 @@ ASItemChest::ASItemChest()
 	TargetPitch = 110;
 }
 
-// Called when the game starts or when spawned
+
 void ASItemChest::BeginPlay()
 {
 	Super::BeginPlay();

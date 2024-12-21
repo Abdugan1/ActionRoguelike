@@ -17,7 +17,6 @@ public:
 	float TargetPitch;
 
 	void Interact_Implementation(APawn* InstigatorPawn) override;
-
 public:	
 	// Sets default values for this actor's properties
 	ASItemChest();

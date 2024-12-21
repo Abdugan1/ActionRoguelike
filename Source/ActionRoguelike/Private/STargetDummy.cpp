@@ -5,7 +5,7 @@
 
 #include "SAttributeComponent.h"
 
-// Sets default values
+
 ASTargetDummy::ASTargetDummy()
 {
 	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("StaticMeshComponent");
@@ -15,11 +15,12 @@ ASTargetDummy::ASTargetDummy()
 	AttributeComponent->OnHealthChanged.AddDynamic(this, &ASTargetDummy::OnHealthChanged);
 }
 
+
 void ASTargetDummy::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComponent, float NewHealth,
 	float Delta)
 {
 	if (Delta < 0)
 	{
-		StaticMeshComponent->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->TimeSeconds);
+		StaticMeshComponent->SetScalarParameterValueOnMaterials("HitFlashTime", GetWorld()->TimeSeconds);
 	}
 }

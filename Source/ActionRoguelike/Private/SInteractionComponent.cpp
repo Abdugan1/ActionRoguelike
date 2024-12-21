@@ -6,21 +6,6 @@
 #include "SGameplayInterface.h"
 
 
-// Sets default values for this component's properties
-USInteractionComponent::USInteractionComponent()
-{
-}
-
-
-// Called when the game starts
-void USInteractionComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// ...
-	
-}
-
 void USInteractionComponent::PrimaryInteract() const
 {
 	FCollisionObjectQueryParams ObjectQueryParams;
@@ -49,12 +34,15 @@ void USInteractionComponent::PrimaryInteract() const
 		{
 			if (HitActor->Implements<USGameplayInterface>())
 			{
-				DrawDebugSphere(GetWorld(), Hit.ImpactPoint, Radius, 32, FColor::Blue, false, 2.0f);
-				APawn* MyPawn = Cast<APawn>(MyOwner);
-				ISGameplayInterface::Execute_Interact(HitActor, MyPawn);
-				break;
+				bool bCanBeInteracted = ISGameplayInterface::Execute_CanBeInteracted(HitActor);
+				if (bCanBeInteracted)
+				{
+					DrawDebugSphere(GetWorld(), Hit.ImpactPoint, Radius, 32, FColor::Blue, false, 2.0f);
+					APawn* MyPawn = Cast<APawn>(MyOwner);
+					ISGameplayInterface::Execute_Interact(HitActor, MyPawn);
+					break;
+				}
 			}
-
 		}
 	}
 

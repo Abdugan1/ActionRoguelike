@@ -6,7 +6,7 @@
 #include "PhysicsEngine/RadialForceComponent.h"
 #include "SAttributeComponent.h"
 
-// Sets default values
+
 ASExplosiveBarrel::ASExplosiveBarrel()
 {
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>("StaticMesh");
@@ -24,10 +24,11 @@ ASExplosiveBarrel::ASExplosiveBarrel()
 	RadialForce->bImpulseVelChange = true;
 }
 
+
 void ASExplosiveBarrel::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	FVector NormalImpulse, const FHitResult& Hit)
 {
-	
+	UE_LOG(LogTemp, Warning, TEXT("Exploded"));
 	Explode();
 	if (OtherActor)
 	{
@@ -39,12 +40,13 @@ void ASExplosiveBarrel::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor
 	}
 }
 
+
 void ASExplosiveBarrel::Explode()
 {
 	RadialForce->FireImpulse();
 }
 
-// Called when the game starts or when spawned
+
 void ASExplosiveBarrel::BeginPlay()
 {
 	Super::BeginPlay();
