@@ -75,6 +75,12 @@ void ASCharacter::Attack(const TSubclassOf<AActor> &ProjectileClass)
 {
 	PlayAnimMontage(AttackAnim);
 
+	UGameplayStatics::SpawnEmitterAttached(
+		CastSpellEffect,
+		GetMesh(),
+		"Muzzle_01"
+	);
+
 	FTimerDelegate TimerCallback;
 	TimerCallback.BindLambda([this, &ProjectileClass]()
 		{
@@ -131,13 +137,6 @@ void ASCharacter::AttackElapsedTime(const TSubclassOf<AActor> &ProjectileClass)
 		FTransform SpawnTM = FTransform(ProjectileRotation, HandLocation);
 
 		GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
-
-		//
-		UGameplayStatics::SpawnEmitterAttached(
-			CastSpellEffect, 
-			GetMesh(),
-			"Muzzle_01"
-		);
 	}
 }
 
