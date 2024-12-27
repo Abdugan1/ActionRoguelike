@@ -10,10 +10,9 @@ ASHealthPotion::ASHealthPotion()
 {
 	HealAmount = 50.0f;
 
-	RespawnTime = 10.0f;
-
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
-	RootComponent = Mesh;
+	Mesh->SetupAttachment(RootComponent);
+	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 
@@ -25,47 +24,11 @@ void ASHealthPotion::Interact_Implementation(APawn* InstigatorPawn)
 			InstigatorPawn->GetComponentByClass(USAttributeComponent::StaticClass())
 		);
 
-		if (ensure(AttributeComponent))
+		if (ensure(AttributeComponent) && !AttributeComponent->IsFullHealth())
 		{
-			if (AttributeComponent->IsFullHealth())
-				return;
-
-			AttributeComponent->ApplyHealthChange(HealAmount);
-			MakeNonInteractableForTime();
+			if (AttributeComponent->ApplyHealthChange(HealAmount))
+				HideAndCooldownPowerup();
 		}
 	}
 	ISGameplayInterface::Interact_Implementation(InstigatorPawn);
 }
-
-
-bool ASHealthPotion::CanBeInteracted_Implementation() const
-{
-	return Interactable_;
-}
-
-
-void ASHealthPotion::MakeNonInteractableForTime()
-{
-	Interactable_ = false;
-
-	SetActorHiddenInGame(true);
-
-	GetWorldTimerManager().SetTimer(
-		RespawnTimerHandle, 
-		this, 
-		&ASHealthPotion::MakeInteractable,
-		RespawnTime,
-		false
-	);
-}
-
-
-void ASHealthPotion::MakeInteractable()
-{
-	GetWorldTimerManager().ClearTimer(RespawnTimerHandle);
-
-	Interactable_ = true;
-
-	SetActorHiddenInGame(false);
-}
-

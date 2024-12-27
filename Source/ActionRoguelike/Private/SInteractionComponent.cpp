@@ -34,14 +34,11 @@ void USInteractionComponent::PrimaryInteract() const
 		{
 			if (HitActor->Implements<USGameplayInterface>())
 			{
-				bool bCanBeInteracted = ISGameplayInterface::Execute_CanBeInteracted(HitActor);
-				if (bCanBeInteracted)
-				{
-					DrawDebugSphere(GetWorld(), Hit.ImpactPoint, Radius, 32, FColor::Blue, false, 2.0f);
-					APawn* MyPawn = Cast<APawn>(MyOwner);
-					ISGameplayInterface::Execute_Interact(HitActor, MyPawn);
-					break;
-				}
+				//bool bCanBeInteracted = ISGameplayInterface::Execute_CanBeInteracted(HitActor);
+				DrawDebugSphere(GetWorld(), Hit.ImpactPoint, Radius, 32, FColor::Blue, false, 2.0f);
+				APawn* MyPawn = Cast<APawn>(MyOwner);
+				ISGameplayInterface::Execute_Interact(HitActor, MyPawn);
+				break;
 			}
 		}
 	}

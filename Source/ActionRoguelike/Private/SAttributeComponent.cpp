@@ -13,11 +13,13 @@ USAttributeComponent::USAttributeComponent()
 
 bool USAttributeComponent::ApplyHealthChange(float Delta)
 {
+	float OldHealth = Health;
 	Health = FMath::Clamp(Health + Delta, 0, HealthMax);
 
-	OnHealthChanged.Broadcast(nullptr, this, Health, Delta);
+	float ActualDelta = Health - OldHealth;
+	OnHealthChanged.Broadcast(nullptr, this, Health, ActualDelta); // @fixme No instigator is on health changed.
 
-	return true;
+	return !(FMath::IsNearlyZero(ActualDelta));
 }
 
 
