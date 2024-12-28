@@ -27,6 +27,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsFullHealth() const;
 
+	UFUNCTION(BlueprintCallable)
+	float GetHealth() const;
+
+	UFUNCTION(BlueprintCallable)
+	float GetMaxHealth() const;
+
+	UFUNCTION(BlueprintCallable)
+	float GetHealthScaled() const;
+
 	UPROPERTY(BlueprintAssignable)
 	FOnHealthChanged OnHealthChanged;
 

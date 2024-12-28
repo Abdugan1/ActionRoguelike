@@ -14,13 +14,13 @@ EBTNodeResult::Type USBTTask_RangedAttack::ExecuteTask(UBehaviorTreeComponent& O
 
 	if (ensure(MyController))
 	{
-		ACharacter* MyPawn = Cast<ACharacter>(MyController->GetPawn());
-		if (!MyPawn)
+		ACharacter* MyCharacter = Cast<ACharacter>(MyController->GetPawn());
+		if (!MyCharacter)
 		{
 			return EBTNodeResult::Failed;
 		}
 
-		FVector MuzzleLocation = MyPawn->GetMesh()->GetSocketLocation("Muzzle_01");
+		FVector MuzzleLocation = MyCharacter->GetMesh()->GetSocketLocation("Muzzle_01");
 
 		AActor* TargetActor = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("TargetActor"));
 
@@ -34,7 +34,7 @@ EBTNodeResult::Type USBTTask_RangedAttack::ExecuteTask(UBehaviorTreeComponent& O
 
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		Params.Instigator = MyPawn;
+		Params.Instigator = MyCharacter;
 
 		AActor* Projectile = GetWorld()->SpawnActor<AActor>(ProjectileClass, MuzzleLocation, MuzzleRotation, Params);
 
