@@ -38,9 +38,9 @@ ASCharacter::ASCharacter()
 }
 
 
-void ASCharacter::PostInitProperties()
+void ASCharacter::PostInitializeComponents()
 {
-	Super::PostInitProperties();
+	Super::PostInitializeComponents();
 
 	AttributeComponent->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHealthChanged);
 }
@@ -168,11 +168,13 @@ void ASCharacter::PrimaryInteract()
 void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComponent, float NewHealth,
 	float Delta)
 {
+	UE_LOG(LogTemp, Log, TEXT("New Health %f, Delta %f"), NewHealth, Delta);
 	if (Delta < 0.0f)
 	{
 		GetMesh()->SetScalarParameterValueOnMaterials("HitFlashTime", GetWorld()->TimeSeconds);
 		if (NewHealth <= 0.0f)
 		{
+			UE_LOG(LogTemp, Log, TEXT("Disable input!"));
 			APlayerController* PlayerController = Cast<APlayerController>(GetController());
 			DisableInput(PlayerController);
 		}

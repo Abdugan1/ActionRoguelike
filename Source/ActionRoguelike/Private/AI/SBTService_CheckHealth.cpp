@@ -34,7 +34,7 @@ void USBTService_CheckHealth::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 				if (ensure(AttributeComp))
 				{
 					float HealthScaled = AttributeComp->GetHealthScaled();
-					UE_LOG(LogTemp, Warning, TEXT("Health Scaled: %f %f"), HealthScaled, LowHealthThreshold);
+					
 					BlackboardComp->SetValueAsBool(
 						LowHealthKey.SelectedKeyName, 
 						HealthScaled <= LowHealthThreshold

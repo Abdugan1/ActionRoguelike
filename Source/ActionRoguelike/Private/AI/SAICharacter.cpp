@@ -14,6 +14,8 @@ ASAICharacter::ASAICharacter()
 	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>("PawnSensingComp");
 
 	AttributeComp = CreateDefaultSubobject<USAttributeComponent>("AttributeComp");
+
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
 
@@ -38,7 +40,7 @@ void ASAICharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponen
 	float Delta)
 {
 	//PrintString
-	UE_LOG(LogTemp, Log, TEXT("AI's health: %f"), NewHealth);
+	//UE_LOG(LogTemp, Log, TEXT("AI's health: %f"), NewHealth);
 }
 
 

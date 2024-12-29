@@ -21,7 +21,7 @@ public:
 	// Sets default values for this character's properties
 	ASCharacter();
 
-	virtual void PostInitProperties() override;
+	void PostInitializeComponents() override;
 
 protected:
 	void MoveForward(float X);
