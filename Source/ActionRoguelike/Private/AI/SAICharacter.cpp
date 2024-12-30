@@ -4,6 +4,7 @@
 #include "AI/SAICharacter.h"
 
 #include "AIController.h"
+#include "BrainComponent.h"
 #include "SAttributeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Perception/PawnSensingComponent.h"
@@ -21,26 +22,44 @@ ASAICharacter::ASAICharacter()
 
 void ASAICharacter::OnPawnSeen(APawn* Pawn)
 {
-	AAIController *MyController = Cast<AAIController>(GetController());
-	if (MyController)
-	{
-		UBlackboardComponent* BlackboardComp = MyController->GetBlackboardComponent();
-
-		BlackboardComp->SetValueAsObject("TargetActor", Pawn);
-
-		DrawDebugString(
-			GetWorld(), GetActorLocation(),
-			"PLAYER SPOTTED", nullptr, 
-			FColor::White, 4.0f, true
-		);
-	}
+	SetTargetActor(Pawn);
+	DrawDebugString(
+		GetWorld(), GetActorLocation(),
+		"PLAYER SPOTTED", nullptr,
+		FColor::White, 4.0f, true
+	);
 }
 
 void ASAICharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComponent, float NewHealth,
 	float Delta)
 {
 	//PrintString
-	//UE_LOG(LogTemp, Log, TEXT("AI's health: %f"), NewHealth);
+	if (Delta < 0.0f)
+	{
+		if (InstigatorActor != this)
+		{
+			SetTargetActor(InstigatorActor);
+		}
+
+		GetMesh()->SetScalarParameterValueOnMaterials("HitFlashTime", GetWorld()->TimeSeconds);
+
+		if (NewHealth <= 0.0f)
+		{
+			// Stop BT
+			AAIController* MyController = Cast<AAIController>(GetController());
+			if (MyController)
+			{
+				MyController->GetBrainComponent()->StopLogic("Killed");
+			}
+
+			// Ragdoll
+			GetMesh()->SetAllBodiesSimulatePhysics(true);
+			GetMesh()->SetCollisionProfileName("Ragdoll");
+
+			// Set lifespan
+			SetLifeSpan(10.0f);
+		}
+	}
 }
 
 
@@ -51,4 +70,14 @@ void ASAICharacter::PostInitializeComponents()
 	PawnSensingComp->OnSeePawn.AddDynamic(this, &ASAICharacter::OnPawnSeen);
 
 	AttributeComp->OnHealthChanged.AddDynamic(this, &ASAICharacter::OnHealthChanged);
+}
+
+
+void ASAICharacter::SetTargetActor(AActor* NewTarget)
+{
+	AAIController* MyController = Cast<AAIController>(GetController());
+	if (MyController)
+	{
+		MyController->GetBlackboardComponent()->SetValueAsObject("TargetActor", NewTarget);;
+	}
 }

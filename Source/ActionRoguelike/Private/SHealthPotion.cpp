@@ -20,13 +20,11 @@ void ASHealthPotion::Interact_Implementation(APawn* InstigatorPawn)
 {
 	if (ensure(InstigatorPawn))
 	{
-		auto AttributeComponent = Cast<USAttributeComponent>(
-			InstigatorPawn->GetComponentByClass(USAttributeComponent::StaticClass())
-		);
+		auto AttributeComponent = USAttributeComponent::GetAttributes(InstigatorPawn);
 
 		if (ensure(AttributeComponent) && !AttributeComponent->IsFullHealth())
 		{
-			if (AttributeComponent->ApplyHealthChange(HealAmount))
+			if (AttributeComponent->ApplyHealthChange(this, HealAmount))
 				HideAndCooldownPowerup();
 		}
 	}

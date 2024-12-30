@@ -32,10 +32,10 @@ void ASExplosiveBarrel::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor
 	Explode();
 	if (OtherActor)
 	{
-		auto AttributeComponent = Cast<USAttributeComponent>(OtherActor->GetComponentByClass(USAttributeComponent::StaticClass()));
+		auto AttributeComponent = USAttributeComponent::GetAttributes(OtherActor);
 		if (AttributeComponent)
 		{
-			AttributeComponent->ApplyHealthChange(-80);
+			AttributeComponent->ApplyHealthChange(this, -80);
 		}
 	}
 }

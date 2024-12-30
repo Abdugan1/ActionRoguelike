@@ -11,13 +11,38 @@ USAttributeComponent::USAttributeComponent()
 }
 
 
-bool USAttributeComponent::ApplyHealthChange(float Delta)
+USAttributeComponent* USAttributeComponent::GetAttributes(AActor* FromActor)
+{
+	if (FromActor)
+	{
+		/* UE 5 Version. Casts FOR YOU */
+		return FromActor->FindComponentByClass<USAttributeComponent>();
+		/* UE 4 Version. HAVE TO Cast MANUALLY */
+		//return Cast<USAttributeComponent>(FromActor->GetComponentByClass(USAttributeComponent::StaticClass()));
+	}
+
+	return nullptr;
+}
+
+
+bool USAttributeComponent::IsActorAlive(AActor* Actor)
+{
+	USAttributeComponent* AttributeComp = GetAttributes(Actor);
+	if (AttributeComp)
+	{
+		return AttributeComp->IsAlive();
+	}
+	return false;
+}
+
+
+bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Delta)
 {
 	float OldHealth = Health;
 	Health = FMath::Clamp(Health + Delta, 0, HealthMax);
 
 	float ActualDelta = Health - OldHealth;
-	OnHealthChanged.Broadcast(nullptr, this, Health, ActualDelta); // @fixme No instigator is on health changed.
+	OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta);
 
 	return !(FMath::IsNearlyZero(ActualDelta));
 }

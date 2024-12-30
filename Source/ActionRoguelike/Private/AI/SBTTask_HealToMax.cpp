@@ -23,7 +23,7 @@ EBTNodeResult::Type USBTTask_HealToMax::ExecuteTask(UBehaviorTreeComponent& Owne
 
 		if (ensure(AttributeComp))
 		{
-			AttributeComp->ApplyHealthChange(AttributeComp->GetMaxHealth());
+			AttributeComp->ApplyHealthChange(MyPawn, AttributeComp->GetMaxHealth());
 			return EBTNodeResult::Succeeded;
 		}
 		else
