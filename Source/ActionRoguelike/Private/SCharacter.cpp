@@ -46,6 +46,12 @@ void ASCharacter::PostInitializeComponents()
 }
 
 
+void ASCharacter::HealSelf(float Amount /* 100 */)
+{
+	AttributeComponent->ApplyHealthChange(this, Amount);
+}
+
+
 void ASCharacter::MoveForward(float X)
 {
 	FRotator ControlRot = GetControlRotation();

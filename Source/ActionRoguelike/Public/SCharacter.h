@@ -23,6 +23,9 @@ public:
 
 	void PostInitializeComponents() override;
 
+	UFUNCTION(Exec)
+	void HealSelf(float Amount = 200);
+
 protected:
 	void MoveForward(float X);
 	void MoveRight(float X);

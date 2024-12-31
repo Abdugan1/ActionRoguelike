@@ -28,6 +28,9 @@ public:
 	bool ApplyHealthChange(AActor *InstigatorActor, float Delta);
 
 	UFUNCTION(BlueprintCallable)
+	bool Kill(AActor* InstigatorActor);
+
+	UFUNCTION(BlueprintCallable)
 	bool IsAlive() const;
 
 	UFUNCTION(BlueprintCallable)

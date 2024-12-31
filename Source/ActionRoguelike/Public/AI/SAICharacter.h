@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "SAICharacter.generated.h"
 
+class USWorldUserWidget;
 class USAttributeComponent;
 class UPawnSensingComponent;
 
@@ -34,4 +35,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category="Components")
 	USAttributeComponent* AttributeComp;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> HealthBarWidgetClass;
+
+	USWorldUserWidget* ActiveHealthBar;
 };
