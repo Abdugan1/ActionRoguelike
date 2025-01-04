@@ -5,9 +5,11 @@
 
 #include "EngineUtils.h"
 #include "SAttributeComponent.h"
+#include "SCharacter.h"
 #include "AI/SAICharacter.h"
 #include "EnvironmentQuery/EnvQueryManager.h"
 
+static TAutoConsoleVariable<bool> CVarSpawnBots{TEXT("su.SpawnBots"), true, TEXT("Enable spawning of bots via timer"), ECVF_Cheat};
 
 ASGameModeBase::ASGameModeBase()
 {
@@ -31,6 +33,24 @@ void ASGameModeBase::StartPlay()
 }
 
 
+void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
+{
+	ASCharacter* Player = Cast<ASCharacter>(VictimActor);
+	if (Player)
+	{
+		FTimerHandle TimerHandle_RespawnDelay;
+
+		FTimerDelegate Delegate;
+		Delegate.BindUObject(this, &ASGameModeBase::RespawnPlayerElapsed, Player->GetController());
+
+		float RespawnDelay = 2.0f;
+		GetWorldTimerManager().SetTimer(TimerHandle_RespawnDelay, Delegate, RespawnDelay, false);
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("OnActorKilled: Vicim: %s, Killer: %s"), *GetNameSafe(VictimActor), *GetNameSafe(Killer));
+}
+
+
 void ASGameModeBase::KillAll()
 {
 	for (TActorIterator<ASAICharacter> It(GetWorld()); It; ++It)
@@ -51,6 +71,12 @@ void ASGameModeBase::KillAll()
 void ASGameModeBase::SpawnBotsTimerElapsed()
 {
 	// Allowed to spawn?
+	if (!CVarSpawnBots.GetValueOnGameThread())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Bot spawning disable via cvar 'CVarSpawnBots'"));
+		return;
+	}
+
 	int32 NumOfAliveBots = 0;
 	for (TActorIterator<ASAICharacter> It(GetWorld()); It; ++It)
 	{
@@ -74,7 +100,6 @@ void ASGameModeBase::SpawnBotsTimerElapsed()
 		UE_LOG(LogTemp, Log, TEXT("AI maximum bot capacity reached: %i. Skipping bot spawn"), CurrentMaxBotCount);
 		return;
 	}
-
 
 	UEnvQueryInstanceBlueprintWrapper* QueryInstance = UEnvQueryManager::RunEQSQuery(
 		this,
@@ -100,8 +125,6 @@ void ASGameModeBase::OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryIn
 		return;
 	}
 
-
-
 	TArray<FVector> Locations = QueryInstance->GetResultsAsLocations();
 
 	if (Locations.Num() > 0)
@@ -109,5 +132,15 @@ void ASGameModeBase::OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryIn
 		GetWorld()->SpawnActor<AActor>(MinionClass, Locations[0], FRotator::ZeroRotator);
 
 		DrawDebugSphere(GetWorld(), Locations[0], 50.f, 20, FColor::Blue, false, 60.0f);
+	}
+}
+
+
+void ASGameModeBase::RespawnPlayerElapsed(AController* Controller)
+{
+	if (ensure(Controller))
+	{
+		Controller->UnPossess();
+		RestartPlayer(Controller);
 	}
 }

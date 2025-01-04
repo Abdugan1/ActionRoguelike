@@ -13,6 +13,9 @@
 #include "Kismet/KismetMathLibrary.h"
 
 
+static TAutoConsoleVariable<bool> CVarDebugDrawAttackSweep(TEXT("su.AttackSweepDebugDraw"), false, TEXT("Enable Debug Lines for Attack Sweep"), ECVF_Cheat);
+
+
 ASCharacter::ASCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -43,6 +46,11 @@ void ASCharacter::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	AttributeComponent->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHealthChanged);
+}
+
+FVector ASCharacter::GetPawnViewLocation() const
+{
+	return CameraComp->GetComponentLocation();
 }
 
 
@@ -107,8 +115,11 @@ void ASCharacter::AttackElapsedTime(const TSubclassOf<AActor> &ProjectileClass)
 		FHitResult Hit;
 
 		FVector TraceStart = CameraComp->GetComponentLocation();
-		TraceStart = TraceStart + CrosshairAttackLineSweepShapeRadius;
+		FVector ForwardDireciton = GetControlRotation().Vector();
+		TraceStart = TraceStart + ForwardDireciton * CrosshairAttackLineSweepShapeRadius;
+
 		FVector TraceEnd = TraceStart + (GetControlRotation().Vector() * CrosshairAttackLineSweepLenght);
+
 
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -126,18 +137,32 @@ void ASCharacter::AttackElapsedTime(const TSubclassOf<AActor> &ProjectileClass)
 		ObjectQueryParams.AddObjectTypesToQuery(ECC_Pawn);
 		ObjectQueryParams.AddObjectTypesToQuery(ECC_PhysicsBody);
 
-		bool HitSomething = GetWorld()->SweepSingleByObjectType(Hit, TraceStart, TraceEnd, FQuat::Identity, ObjectQueryParams, Shape, Params);
+		const bool HitSomething = GetWorld()->SweepSingleByObjectType(Hit, TraceStart, TraceEnd, FQuat::Identity, ObjectQueryParams, Shape, Params);
+
+		const bool bDrawDebug = CVarDebugDrawAttackSweep.GetValueOnGameThread();
+		const float DrawDebugLifeSpawn = 5.0f;
 
 		FRotator ProjectileRotation;
 		if (HitSomething)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Hit something"));
+			UE_LOG(LogTemp, Warning, TEXT("Attack LineSweep: Hit something: %s"), *Hit.GetActor()->GetName());
 			ProjectileRotation = UKismetMathLibrary::FindLookAtRotation(HandLocation, Hit.ImpactPoint);
+
+			if (bDrawDebug)
+			{
+				DrawDebugLine(GetWorld(), Hit.TraceStart, Hit.ImpactPoint, FColor::Blue, false, DrawDebugLifeSpawn);
+				DrawDebugSphere(GetWorld(), Hit.ImpactPoint, CrosshairAttackLineSweepShapeRadius, 12, FColor::Red, false, DrawDebugLifeSpawn);
+			}
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Does not hit something"));
+			UE_LOG(LogTemp, Warning, TEXT("Attack LineSweep: Does not hit anything"));
 			ProjectileRotation = UKismetMathLibrary::FindLookAtRotation(HandLocation, Hit.TraceEnd);
+
+			if (bDrawDebug)
+			{
+				DrawDebugLine(GetWorld(), Hit.TraceStart, Hit.TraceEnd, FColor::Blue, false, DrawDebugLifeSpawn);
+			}
 		}
 
 		FTransform SpawnTM = FTransform(ProjectileRotation, HandLocation);

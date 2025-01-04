@@ -23,6 +23,8 @@ public:
 
 	void PostInitializeComponents() override;
 
+	virtual FVector GetPawnViewLocation() const override;
+
 	UFUNCTION(Exec)
 	void HealSelf(float Amount = 200);
 

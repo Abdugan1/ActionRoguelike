@@ -6,8 +6,13 @@
 #include "SGameplayInterface.h"
 
 
+static TAutoConsoleVariable<bool> CVarDebugDrawInteraction(TEXT("su.InteractionDebugDraw"), false, TEXT("Enable Debug Lines for Interaction Component"), ECVF_Cheat);
+
+
 void USInteractionComponent::PrimaryInteract() const
 {
+	const bool bDebugDraw = CVarDebugDrawInteraction.GetValueOnGameThread();
+
 	FCollisionObjectQueryParams ObjectQueryParams;
 	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
 
@@ -35,7 +40,10 @@ void USInteractionComponent::PrimaryInteract() const
 			if (HitActor->Implements<USGameplayInterface>())
 			{
 				//bool bCanBeInteracted = ISGameplayInterface::Execute_CanBeInteracted(HitActor);
-				DrawDebugSphere(GetWorld(), Hit.ImpactPoint, Radius, 32, FColor::Blue, false, 2.0f);
+				if (bDebugDraw)
+				{
+					DrawDebugSphere(GetWorld(), Hit.ImpactPoint, Radius, 32, FColor::Green, false, 2.0f);
+				}
 				APawn* MyPawn = Cast<APawn>(MyOwner);
 				ISGameplayInterface::Execute_Interact(HitActor, MyPawn);
 				break;
@@ -43,5 +51,8 @@ void USInteractionComponent::PrimaryInteract() const
 		}
 	}
 
-	DrawDebugLine(GetWorld(), EyeLocation, End, FColor::Red, false, 2.0f, 0, 2.0f);
+	if (bDebugDraw)
+	{
+		DrawDebugLine(GetWorld(), EyeLocation, End, FColor::Emerald, false, 2.0f, 0, 2.0f);
+	}
 }
