@@ -4,6 +4,10 @@
 #include "SHealthPotion.h"
 
 #include "SAttributeComponent.h"
+#include "SPlayerState.h"
+
+
+static TAutoConsoleVariable<float> CVarCreditsHealthPotionCostAmount{ TEXT("su.CreditsHealthPotionCostAmount"), 20, TEXT("Credits health potion cost amount per a use"), ECVF_Cheat };
 
 
 ASHealthPotion::ASHealthPotion()
@@ -20,6 +24,24 @@ void ASHealthPotion::Interact_Implementation(APawn* InstigatorPawn)
 {
 	if (ensure(InstigatorPawn))
 	{
+		ASPlayerState* PlayerState = ASPlayerState::GetPlayerStateOfPawn(InstigatorPawn);
+		if (!ensure(PlayerState))
+		{
+			return;
+		}
+
+		const float PlayerCredits = PlayerState->GetCredits();
+		const float CreditCost = CVarCreditsHealthPotionCostAmount.GetValueOnGameThread();
+		if (PlayerCredits >= CreditCost || FMath::IsNearlyEqual(PlayerCredits, CreditCost))
+		{
+			PlayerState->ApplyCreditsChange(-CreditCost);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("Not enough credits to use potion. Cost: %f"), CreditCost);
+			return;
+		}
+
 		auto AttributeComponent = USAttributeComponent::GetAttributes(InstigatorPawn);
 
 		if (ensure(AttributeComponent) && !AttributeComponent->IsFullHealth())

@@ -30,7 +30,13 @@ protected:
 	void SpawnBotsTimerElapsed();
 
 	UFUNCTION()
-	void OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
+	void OnSpawnBotQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
+
+	UFUNCTION()
+	void OnSpawnCoinQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
+
+	UFUNCTION()
+	void OnSpawnHealthPotionQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
 
 	UFUNCTION()
 	void RespawnPlayerElapsed(AController* Controller);
@@ -53,4 +59,23 @@ protected:
 
 
 	FTimerHandle TimerHandle_SpawnBots;
+
+
+	UPROPERTY(EditDefaultsOnly, Category = "PowerUps")
+	int HealthPotionMaxAmount;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PowerUps")
+	int CoinMaxAmount;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PowerUps")
+	TSubclassOf<AActor> HealthPotionClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PowerUps")
+	TSubclassOf<AActor> CoinClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PowerUps")
+	UEnvQuery* SpawnHealthPotionQuery;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PowerUps")
+	UEnvQuery* SpawnCoinQuery;
 };

@@ -120,7 +120,6 @@ void ASCharacter::AttackElapsedTime(const TSubclassOf<AActor> &ProjectileClass)
 
 		FVector TraceEnd = TraceStart + (GetControlRotation().Vector() * CrosshairAttackLineSweepLenght);
 
-
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		SpawnParams.Instigator = this;
@@ -150,6 +149,8 @@ void ASCharacter::AttackElapsedTime(const TSubclassOf<AActor> &ProjectileClass)
 
 			if (bDrawDebug)
 			{
+				DrawDebugString(GetWorld(), Hit.TraceStart, TEXT("START"), nullptr, FColor::Cyan, DrawDebugLifeSpawn);
+				DrawDebugString(GetWorld(), Hit.ImpactPoint, TEXT("END"), nullptr, FColor::Black, DrawDebugLifeSpawn);
 				DrawDebugLine(GetWorld(), Hit.TraceStart, Hit.ImpactPoint, FColor::Blue, false, DrawDebugLifeSpawn);
 				DrawDebugSphere(GetWorld(), Hit.ImpactPoint, CrosshairAttackLineSweepShapeRadius, 12, FColor::Red, false, DrawDebugLifeSpawn);
 			}
@@ -161,6 +162,8 @@ void ASCharacter::AttackElapsedTime(const TSubclassOf<AActor> &ProjectileClass)
 
 			if (bDrawDebug)
 			{
+				DrawDebugString(GetWorld(), Hit.TraceStart, TEXT("START"), nullptr, FColor::Cyan, DrawDebugLifeSpawn);
+				DrawDebugString(GetWorld(), Hit.TraceEnd, TEXT("END"), nullptr, FColor::Black, DrawDebugLifeSpawn);
 				DrawDebugLine(GetWorld(), Hit.TraceStart, Hit.TraceEnd, FColor::Blue, false, DrawDebugLifeSpawn);
 			}
 		}
