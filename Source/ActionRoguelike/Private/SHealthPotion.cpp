@@ -32,11 +32,10 @@ void ASHealthPotion::Interact_Implementation(APawn* InstigatorPawn)
 
 		const float PlayerCredits = PlayerState->GetCredits();
 		const float CreditCost = CVarCreditsHealthPotionCostAmount.GetValueOnGameThread();
-		if (PlayerCredits >= CreditCost || FMath::IsNearlyEqual(PlayerCredits, CreditCost))
-		{
-			PlayerState->ApplyCreditsChange(-CreditCost);
-		}
-		else
+
+		const bool bIsEnoughCredits = PlayerCredits >= CreditCost || FMath::IsNearlyEqual(PlayerCredits, CreditCost);
+
+		if (!bIsEnoughCredits)
 		{
 			UE_LOG(LogTemp, Log, TEXT("Not enough credits to use potion. Cost: %f"), CreditCost);
 			return;
@@ -47,7 +46,10 @@ void ASHealthPotion::Interact_Implementation(APawn* InstigatorPawn)
 		if (ensure(AttributeComponent) && !AttributeComponent->IsFullHealth())
 		{
 			if (AttributeComponent->ApplyHealthChange(this, HealAmount))
+			{
 				HideAndCooldownPowerup();
+				PlayerState->ApplyCreditsChange(-CreditCost);
+			}
 		}
 	}
 	ISGameplayInterface::Interact_Implementation(InstigatorPawn);
