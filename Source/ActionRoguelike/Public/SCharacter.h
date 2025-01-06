@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "SCharacter.generated.h"
 
+class USActionComponent;
 class USAttributeComponent;
 class ASProjectileBase;
 class UAnimMontage;
@@ -18,7 +19,6 @@ class ACTIONROGUELIKE_API ASCharacter : public ACharacter
 {
 	GENERATED_BODY()
 public:
-	// Sets default values for this character's properties
 	ASCharacter();
 
 	void PostInitializeComponents() override;
@@ -32,12 +32,12 @@ protected:
 	void MoveForward(float X);
 	void MoveRight(float X);
 
+	void SprintStart();
+	void SprintStop();
+
 	void PrimaryAttack();
 	void BlackholeAttack();
 	void DashAttack();
-
-	void Attack(const TSubclassOf<AActor> &ProjectileClass);
-	void AttackElapsedTime(const TSubclassOf<AActor> &ProjectileClass);
 
 	void PrimaryInteract();
 
@@ -60,28 +60,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USAttributeComponent* AttributeComponent;
 
-protected:
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	TSubclassOf<AActor> PrimaryProjectileClass;
-
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	TSubclassOf<AActor> BlackholeProjectileClass;
-
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	TSubclassOf<AActor> DashProjectileClass;
-
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	UParticleSystem* CastSpellEffect;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
-	float CrosshairAttackLineSweepLenght;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
-	float CrosshairAttackLineSweepShapeRadius;
-
-	UPROPERTY(EditAnywhere, Category = "Animation")
-	UAnimMontage* AttackAnim;
-
-	FTimerHandle TimerHandlePrimaryAttack;
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USActionComponent* ActionComp;
 };

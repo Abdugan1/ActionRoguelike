@@ -3,6 +3,7 @@
 
 #include "SCharacter.h"
 
+#include "SActionComponent.h"
 #include "SAttributeComponent.h"
 #include "SInteractionComponent.h"
 #include "TimerManager.h"
@@ -13,13 +14,9 @@
 #include "Kismet/KismetMathLibrary.h"
 
 
-static TAutoConsoleVariable<bool> CVarDebugDrawAttackSweep(TEXT("su.AttackSweepDebugDraw"), false, TEXT("Enable Debug Lines for Attack Sweep"), ECVF_Cheat);
-
-
 ASCharacter::ASCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	//PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = true;
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>("SpringArmComponent");
 	SpringArmComp->bUsePawnControlRotation = true; // true
@@ -32,12 +29,11 @@ ASCharacter::ASCharacter()
 
 	AttributeComponent = CreateDefaultSubobject<USAttributeComponent>("AttributeComponent");
 
+	ActionComp = CreateDefaultSubobject<USActionComponent>("ActionComp");
+
 	GetCharacterMovement()->bOrientRotationToMovement = true; // true
 
 	bUseControllerRotationYaw = false; // false
-
-	CrosshairAttackLineSweepLenght = 5000;
-	CrosshairAttackLineSweepShapeRadius = 20;
 }
 
 
@@ -85,110 +81,32 @@ void ASCharacter::MoveRight(float X)
 }
 
 
-void ASCharacter::Attack(const TSubclassOf<AActor> &ProjectileClass)
+void ASCharacter::SprintStart()
 {
-	PlayAnimMontage(AttackAnim);
-
-	UGameplayStatics::SpawnEmitterAttached(
-		CastSpellEffect,
-		GetMesh(),
-		"Muzzle_01"
-	);
-
-	FTimerDelegate TimerCallback;
-	TimerCallback.BindLambda([this, &ProjectileClass]()
-		{
-			AttackElapsedTime(ProjectileClass);
-		}
-	);
-
-	GetWorldTimerManager().SetTimer(TimerHandlePrimaryAttack, TimerCallback, 0.2f, false);
+	ActionComp->StartActionByName(this, "Sprint");
 }
 
 
-void ASCharacter::AttackElapsedTime(const TSubclassOf<AActor> &ProjectileClass)
+void ASCharacter::SprintStop()
 {
-	if (ensureAlways(ProjectileClass))
-	{
-		FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
-
-		FHitResult Hit;
-
-		FVector TraceStart = CameraComp->GetComponentLocation();
-		FVector ForwardDireciton = GetControlRotation().Vector();
-		TraceStart = TraceStart + ForwardDireciton * CrosshairAttackLineSweepShapeRadius;
-
-		FVector TraceEnd = TraceStart + (GetControlRotation().Vector() * CrosshairAttackLineSweepLenght);
-
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		SpawnParams.Instigator = this;
-
-		FCollisionShape Shape;
-		Shape.SetSphere(CrosshairAttackLineSweepShapeRadius);
-
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(this);
-
-		FCollisionObjectQueryParams ObjectQueryParams;
-		ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
-		ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
-		ObjectQueryParams.AddObjectTypesToQuery(ECC_Pawn);
-		ObjectQueryParams.AddObjectTypesToQuery(ECC_PhysicsBody);
-
-		const bool HitSomething = GetWorld()->SweepSingleByObjectType(Hit, TraceStart, TraceEnd, FQuat::Identity, ObjectQueryParams, Shape, Params);
-
-		const bool bDrawDebug = CVarDebugDrawAttackSweep.GetValueOnGameThread();
-		const float DrawDebugLifeSpawn = 5.0f;
-
-		FRotator ProjectileRotation;
-		if (HitSomething)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Attack LineSweep: Hit something: %s"), *Hit.GetActor()->GetName());
-			ProjectileRotation = UKismetMathLibrary::FindLookAtRotation(HandLocation, Hit.ImpactPoint);
-
-			if (bDrawDebug)
-			{
-				DrawDebugString(GetWorld(), Hit.TraceStart, TEXT("START"), nullptr, FColor::Cyan, DrawDebugLifeSpawn);
-				DrawDebugString(GetWorld(), Hit.ImpactPoint, TEXT("END"), nullptr, FColor::Black, DrawDebugLifeSpawn);
-				DrawDebugLine(GetWorld(), Hit.TraceStart, Hit.ImpactPoint, FColor::Blue, false, DrawDebugLifeSpawn);
-				DrawDebugSphere(GetWorld(), Hit.ImpactPoint, CrosshairAttackLineSweepShapeRadius, 12, FColor::Red, false, DrawDebugLifeSpawn);
-			}
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Attack LineSweep: Does not hit anything"));
-			ProjectileRotation = UKismetMathLibrary::FindLookAtRotation(HandLocation, Hit.TraceEnd);
-
-			if (bDrawDebug)
-			{
-				DrawDebugString(GetWorld(), Hit.TraceStart, TEXT("START"), nullptr, FColor::Cyan, DrawDebugLifeSpawn);
-				DrawDebugString(GetWorld(), Hit.TraceEnd, TEXT("END"), nullptr, FColor::Black, DrawDebugLifeSpawn);
-				DrawDebugLine(GetWorld(), Hit.TraceStart, Hit.TraceEnd, FColor::Blue, false, DrawDebugLifeSpawn);
-			}
-		}
-
-		FTransform SpawnTM = FTransform(ProjectileRotation, HandLocation);
-
-		GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
-	}
+	ActionComp->StopActionByName(this, "Sprint");
 }
 
 
 void ASCharacter::PrimaryAttack()
 {
-	Attack(PrimaryProjectileClass);
+	ActionComp->StartActionByName(this, "PrimaryAttack");
 }
 
 
 void ASCharacter::BlackholeAttack()
 {
-	Attack(BlackholeProjectileClass);
+	ActionComp->StartActionByName(this, "Blackhole");
 }
 
 void ASCharacter::DashAttack()
 {
-	Attack(DashProjectileClass);
+	ActionComp->StartActionByName(this, "Dash");
 }
 
 
@@ -256,5 +174,8 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASCharacter::Jump);
 
 	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &ASCharacter::PrimaryInteract);
+
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASCharacter::SprintStart);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASCharacter::SprintStop);
 }
 
