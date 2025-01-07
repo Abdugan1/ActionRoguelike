@@ -7,6 +7,8 @@
 #include "GameFramework/GameModeBase.h"
 #include "SGameModeBase.generated.h"
 
+class ASPowerupActor;
+
 /**
  * 
  */
@@ -33,10 +35,7 @@ protected:
 	void OnSpawnBotQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
 
 	UFUNCTION()
-	void OnSpawnCoinQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
-
-	UFUNCTION()
-	void OnSpawnHealthPotionQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
+	void OnSpawnPowerupsQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
 
 	UFUNCTION()
 	void RespawnPlayerElapsed(AController* Controller);
@@ -52,7 +51,7 @@ protected:
 	TSubclassOf<AActor> MinionClass;
 
 	UPROPERTY(EditDefaultsOnly, Category="AI")
-	int MaxBotCount;
+	int32 MaxBotCount;
 
 	UPROPERTY(EditDefaultsOnly, Category="AI")
 	UCurveFloat* DifficultyCurve;
@@ -62,20 +61,14 @@ protected:
 
 
 	UPROPERTY(EditDefaultsOnly, Category = "PowerUps")
-	int HealthPotionMaxAmount;
+	int32 DesiredPowerupCount;
 
 	UPROPERTY(EditDefaultsOnly, Category = "PowerUps")
-	int CoinMaxAmount;
+	int32 RequiredPowerupDistance;
 
 	UPROPERTY(EditDefaultsOnly, Category = "PowerUps")
-	TSubclassOf<AActor> HealthPotionClass;
+	TArray<TSubclassOf<ASPowerupActor>> PowerupClasses;
 
 	UPROPERTY(EditDefaultsOnly, Category = "PowerUps")
-	TSubclassOf<AActor> CoinClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "PowerUps")
-	UEnvQuery* SpawnHealthPotionQuery;
-
-	UPROPERTY(EditDefaultsOnly, Category = "PowerUps")
-	UEnvQuery* SpawnCoinQuery;
+	UEnvQuery* SpawnPowerupsQuery;
 };

@@ -7,9 +7,9 @@
 #include "SAttributeComponent.h"
 #include "SCharacter.h"
 #include "SPlayerState.h"
+#include "SPowerupActor.h"
 #include "AI/SAICharacter.h"
 #include "EnvironmentQuery/EnvQueryManager.h"
-
 
 static TAutoConsoleVariable<bool> CVarSpawnBots{TEXT("su.SpawnBots"), true, TEXT("Enable spawning of bots via timer"), ECVF_Cheat};
 
@@ -18,9 +18,8 @@ static TAutoConsoleVariable<float> CVarCreditsGrantAmount{ TEXT("su.CreditsGrant
 
 ASGameModeBase::ASGameModeBase()
 {
-	HealthPotionMaxAmount = 10;
-
-	CoinMaxAmount = 10;
+	DesiredPowerupCount = 10;
+	RequiredPowerupDistance = 2000;
 
 	SpawnTimerInterval = 2.0f;
 
@@ -41,33 +40,18 @@ void ASGameModeBase::StartPlay()
 		true
 	);
 
-	// Coin Spawn
-	UEnvQueryInstanceBlueprintWrapper* CoinSpawnQueryInstance = UEnvQueryManager::RunEQSQuery(
+	// Powerups Spawn
+	UEnvQueryInstanceBlueprintWrapper* PowerupsSpawnQueryInstance = UEnvQueryManager::RunEQSQuery(
 		this,
-		SpawnCoinQuery,
-		this,
-		EEnvQueryRunMode::AllMatching,
-		nullptr
-	);
-
-	if (ensure(CoinSpawnQueryInstance))
-	{
-		CoinSpawnQueryInstance->GetOnQueryFinishedEvent().AddDynamic(this, &ASGameModeBase::OnSpawnCoinQueryCompleted);
-	}
-
-	// Health Potion Spawn
-
-	UEnvQueryInstanceBlueprintWrapper* HealthPotionSpawnQueryInstance = UEnvQueryManager::RunEQSQuery(
-		this,
-		SpawnHealthPotionQuery,
+		SpawnPowerupsQuery,
 		this,
 		EEnvQueryRunMode::AllMatching,
 		nullptr
 	);
 
-	if (ensure(HealthPotionSpawnQueryInstance))
+	if (ensure(PowerupsSpawnQueryInstance))
 	{
-		HealthPotionSpawnQueryInstance->GetOnQueryFinishedEvent().AddDynamic(this, &ASGameModeBase::OnSpawnHealthPotionQueryCompleted);
+		PowerupsSpawnQueryInstance->GetOnQueryFinishedEvent().AddDynamic(this, &ASGameModeBase::OnSpawnPowerupsQueryCompleted);
 	}
 }
 
@@ -143,7 +127,7 @@ void ASGameModeBase::SpawnBotsTimerElapsed()
 
 	UE_LOG(LogTemp, Log, TEXT("Found %i alive bots."), NumOfAliveBots);
 
-	const int CurrentMaxBotCount = DifficultyCurve ? DifficultyCurve->GetFloatValue(GetWorld()->TimeSeconds) : MaxBotCount;
+	const int32 CurrentMaxBotCount = DifficultyCurve ? DifficultyCurve->GetFloatValue(GetWorld()->TimeSeconds) : MaxBotCount;
 
 	if (NumOfAliveBots >= CurrentMaxBotCount)
 	{
@@ -186,7 +170,7 @@ void ASGameModeBase::OnSpawnBotQueryCompleted(UEnvQueryInstanceBlueprintWrapper*
 }
 
 
-void ASGameModeBase::OnSpawnCoinQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance,
+void ASGameModeBase::OnSpawnPowerupsQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance,
 	EEnvQueryStatus::Type QueryStatus)
 {
 	if (QueryStatus != EEnvQueryStatus::Success)
@@ -196,38 +180,45 @@ void ASGameModeBase::OnSpawnCoinQueryCompleted(UEnvQueryInstanceBlueprintWrapper
 	}
 
 	TArray<FVector> Locations = QueryInstance->GetResultsAsLocations();
-	for (int i = 0; i < CoinMaxAmount; i++)
+	TArray<FVector> UsedLocations;
+
+	int32 SpawnCounter = 0;
+	while (SpawnCounter < DesiredPowerupCount && Locations.Num() > 0)
 	{
-		const int RandomIndex = FMath::RandRange(0, Locations.Num() - 1);
-		if (!Locations.IsValidIndex(RandomIndex))
+		const int32 RandomLocationIndex = FMath::RandRange(0, Locations.Num() - 1);
+
+		const FVector PickedLocation = Locations[RandomLocationIndex];
+
+		Locations.RemoveAt(RandomLocationIndex);
+
+		bool bValidLocation = true;
+		for (FVector OtherLocation : UsedLocations)
 		{
-			UE_LOG(LogTemp, Error, TEXT("Spawn Coin Location Is NOT valid!"));
-			break;
+			const float DistanceTo = (PickedLocation - OtherLocation).Size();
+
+			if (DistanceTo < RequiredPowerupDistance)
+			{
+				// Show skipped locations due to distance
+				DrawDebugSphere(GetWorld(), PickedLocation, 50.0f, 20, FColor::Purple, false, 10.0f);
+
+				bValidLocation = false;
+				break;
+			}
 		}
-		GetWorld()->SpawnActor<AActor>(CoinClass, Locations[RandomIndex], FRotator::ZeroRotator);
-	}
-}
 
-
-void ASGameModeBase::OnSpawnHealthPotionQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance,
-	EEnvQueryStatus::Type QueryStatus)
-{
-	if (QueryStatus != EEnvQueryStatus::Success)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Spawn health potion EQS Query Failed!"));
-		return;
-	}
-
-	TArray<FVector> Locations = QueryInstance->GetResultsAsLocations();
-	for (int i = 0; i < HealthPotionMaxAmount; i++)
-	{
-		const int RandomIndex = FMath::RandRange(0, Locations.Num() - 1);
-		if (!Locations.IsValidIndex(RandomIndex))
+		if (!bValidLocation)
 		{
-			UE_LOG(LogTemp, Error, TEXT("Spawn Health Potion Location Is NOT valid!"));
-			break;
+			continue;
 		}
-		GetWorld()->SpawnActor<AActor>(HealthPotionClass, Locations[RandomIndex], FRotator::ZeroRotator);
+
+		const int32 RandomClassIndex = FMath::RandRange(0, PowerupClasses.Num() - 1);
+
+		TSubclassOf<ASPowerupActor> RandomPowerupClass = PowerupClasses[RandomClassIndex];
+
+		GetWorld()->SpawnActor<AActor>(RandomPowerupClass, PickedLocation, FRotator::ZeroRotator);
+
+		UsedLocations.Add(PickedLocation);
+		SpawnCounter++;
 	}
 }
 
