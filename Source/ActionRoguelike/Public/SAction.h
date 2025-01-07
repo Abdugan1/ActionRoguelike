@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
-#include "UObject/NoExportTypes.h"
 #include "SAction.generated.h"
 
 class USActionComponent;
@@ -36,6 +35,11 @@ public:
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Action")
 	FName ActionName;
+
+public:
+	/* Start immediately when added to an action component */
+	UPROPERTY(EditDefaultsOnly, Category = "Action")
+	bool bAutoStart;
 
 protected:
 	bool bIsRunning;

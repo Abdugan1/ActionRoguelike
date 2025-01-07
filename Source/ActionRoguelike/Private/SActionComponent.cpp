@@ -18,7 +18,7 @@ void USActionComponent::BeginPlay()
 	Super::BeginPlay();
 	for (TSubclassOf<USAction> ActionClass : DefaultActions)
 	{
-		AddAction(ActionClass);
+		AddAction(GetOwner(), ActionClass);
 	}
 }
 
@@ -33,18 +33,34 @@ void USActionComponent::TickComponent(float DeltaTime, enum ELevelTick TickType,
 }
 
 
-void USActionComponent::AddAction(TSubclassOf<USAction> ActionClass)
+void USActionComponent::AddAction(AActor* Instigator, TSubclassOf<USAction> ActionClass)
 {
 	if (!ensure(ActionClass))
 	{
 		return;
 	}
 
-	USAction *NewAction = NewObject<USAction>(this, ActionClass);
+	USAction* NewAction = NewObject<USAction>(this, ActionClass);
 	if (ensure(NewAction))
 	{
 		Actions.Add(NewAction);
+
+		if (NewAction->bAutoStart && ensure(NewAction->CanStart(Instigator)))
+		{
+			NewAction->StartAction(Instigator);
+		}
 	}
+}
+
+
+void USActionComponent::RemoveAction(USAction* Action)
+{
+	if (ensure(Action && !Action->IsRunning()))
+	{
+		return;
+	}
+
+	Actions.Remove(Action);
 }
 
 
