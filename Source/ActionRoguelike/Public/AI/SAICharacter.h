@@ -9,6 +9,7 @@
 class USWorldUserWidget;
 class USAttributeComponent;
 class UPawnSensingComponent;
+class USActionComponent;
 
 UCLASS()
 class ACTIONROGUELIKE_API ASAICharacter : public ACharacter
@@ -35,6 +36,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category="Components")
 	USAttributeComponent* AttributeComp;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	USActionComponent* ActionComp;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> HealthBarWidgetClass;
