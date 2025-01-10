@@ -4,7 +4,7 @@
 #include "SCharacter.h"
 
 #include "SActionComponent.h"
-#include "SAttributeComponent.h"
+#include "SPlayerAttributeComponent.h"
 #include "SInteractionComponent.h"
 #include "TimerManager.h"
 #include "Camera/CameraComponent.h"
@@ -12,6 +12,9 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+
+
+static TAutoConsoleVariable<float> CVarRageMultiplier{ TEXT("su.RageMultiplier"), 0.7f, TEXT("Rage multiplier per player hit for Attribute Component"), ECVF_Cheat };
 
 
 ASCharacter::ASCharacter()
@@ -27,7 +30,7 @@ ASCharacter::ASCharacter()
 
 	InteractionComponent = CreateDefaultSubobject<USInteractionComponent>("InteractionComponent");
 
-	AttributeComponent = CreateDefaultSubobject<USAttributeComponent>("AttributeComponent");
+	AttributeComponent = CreateDefaultSubobject<USPlayerAttributeComponent>("AttributeComponent");
 
 	ActionComp = CreateDefaultSubobject<USActionComponent>("ActionComp");
 
@@ -43,6 +46,7 @@ void ASCharacter::PostInitializeComponents()
 
 	AttributeComponent->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHealthChanged);
 }
+
 
 FVector ASCharacter::GetPawnViewLocation() const
 {
@@ -120,13 +124,18 @@ void ASCharacter::PrimaryInteract()
 void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComponent, float NewHealth,
 	float Delta)
 {
-	UE_LOG(LogTemp, Log, TEXT("New Health %f, Delta %f"), NewHealth, Delta);
 	if (Delta < 0.0f)
 	{
+		// Hit Flash
 		GetMesh()->SetScalarParameterValueOnMaterials("HitFlashTime", GetWorld()->TimeSeconds);
+
+		// Apply rage change by factor. -Delta because it's damage, not heal
+		const float RageMultiplier = CVarRageMultiplier.GetValueOnGameThread();
+		AttributeComponent->ApplyRageChange(nullptr, -Delta * RageMultiplier); // @todo: Do I need an Instigator here?
+
+		// Died
 		if (NewHealth <= 0.0f)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Disable input!"));
 			APlayerController* PlayerController = Cast<APlayerController>(GetController());
 			DisableInput(PlayerController);
 		}

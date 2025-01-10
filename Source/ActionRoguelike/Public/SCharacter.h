@@ -7,7 +7,7 @@
 #include "SCharacter.generated.h"
 
 class USActionComponent;
-class USAttributeComponent;
+class USPlayerAttributeComponent;
 class ASProjectileBase;
 class UAnimMontage;
 class USInteractionComponent;
@@ -58,7 +58,7 @@ protected:
 	USInteractionComponent* InteractionComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	USAttributeComponent* AttributeComponent;
+	USPlayerAttributeComponent* AttributeComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USActionComponent* ActionComp;
