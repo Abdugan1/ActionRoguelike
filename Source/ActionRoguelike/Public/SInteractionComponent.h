@@ -17,11 +17,14 @@ class ACTIONROGUELIKE_API USInteractionComponent : public UActorComponent
 public:
 	USInteractionComponent();
 
-	void PrimaryInteract() const;
+	void PrimaryInteract();
 
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
+	UFUNCTION(Server, Reliable)
+	void ServerInteract(AActor *InFocus);
+
 	void FindBestInteractable();
 
 protected:

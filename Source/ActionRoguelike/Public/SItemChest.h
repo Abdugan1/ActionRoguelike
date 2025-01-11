@@ -13,17 +13,22 @@ class ACTIONROGUELIKE_API ASItemChest : public AActor, public ISGameplayInterfac
 	GENERATED_BODY()
 
 public:
+	ASItemChest();
+
+	void Interact_Implementation(APawn* InstigatorPawn) override;
+
+protected:
+	UFUNCTION()
+	void OnRep_LidOpened();
+
+public:
 	UPROPERTY(EditAnywhere)
 	float TargetPitch;
 
-	void Interact_Implementation(APawn* InstigatorPawn) override;
-public:	
-	// Sets default values for this actor's properties
-	ASItemChest();
-
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+
+	UPROPERTY(ReplicatedUsing="OnRep_LidOpened", BlueprintReadOnly) // RepNotify
+	bool bLidOpened;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* BaseMesh;
