@@ -9,14 +9,13 @@
 
 USEffect_Thorn::USEffect_Thorn()
 {
-	ReflectCoeff = 0.2;
+	ReflectCoeff = 0.5f;
 }
 
 
 void USEffect_Thorn::ReflectDamage(AActor* InstigatorActor, USAttributeComponent* OwningComponent, float NewHealth,
 	float Delta)
 {
-	UE_LOG(LogTemp, Log, TEXT("Damage was dealt"));
 	if (Delta < 0.0f)
 	{
 		const float ReflectDamage = Delta * ReflectCoeff;
@@ -39,7 +38,7 @@ void USEffect_Thorn::StopAction_Implementation(AActor* Instigator)
 	USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(Instigator);
 	if (ensure(AttributeComp))
 	{
-		AttributeComp->OnHealthChanged.AddDynamic(this, &USEffect_Thorn::ReflectDamage);
+		AttributeComp->OnHealthChanged.RemoveDynamic(this, &USEffect_Thorn::ReflectDamage);
 	}
 }
 
@@ -51,6 +50,6 @@ void USEffect_Thorn::StartAction_Implementation(AActor* Instigator)
 	USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(Instigator);
 	if (ensure(AttributeComp))
 	{
-		AttributeComp->OnHealthChanged.RemoveDynamic(this, &USEffect_Thorn::ReflectDamage);
+		AttributeComp->OnHealthChanged.AddDynamic(this, &USEffect_Thorn::ReflectDamage);
 	}
 }

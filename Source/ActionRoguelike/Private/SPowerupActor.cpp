@@ -14,6 +14,10 @@ ASPowerupActor::ASPowerupActor()
 	RespawnTime = 10.0f;
 
 	RootComponent = InteractionSphereComp;
+
+	Mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
+	Mesh->SetupAttachment(RootComponent);
+	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 

@@ -21,7 +21,4 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, Category="Effects")
 	float HealAmount;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
-	UStaticMeshComponent* Mesh;
 };

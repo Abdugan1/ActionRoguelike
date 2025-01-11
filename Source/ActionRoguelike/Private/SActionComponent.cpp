@@ -64,6 +64,22 @@ void USActionComponent::RemoveAction(USAction* Action)
 }
 
 
+bool USActionComponent::HasAction(TSubclassOf<USAction> Action) const
+{
+	ensure(Action);
+
+	for (const USAction *ExistingAction : Actions)
+	{
+		if (ExistingAction && ExistingAction->GetClass() == Action)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
 bool USActionComponent::StartActionByName(AActor* Instigator, FName ActionName)
 {
 	for (USAction *Action : Actions)

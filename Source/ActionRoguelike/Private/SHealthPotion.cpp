@@ -13,10 +13,6 @@ static TAutoConsoleVariable<float> CVarCreditsHealthPotionCostAmount{ TEXT("su.C
 ASHealthPotion::ASHealthPotion()
 {
 	HealAmount = 50.0f;
-
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
-	Mesh->SetupAttachment(RootComponent);
-	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 

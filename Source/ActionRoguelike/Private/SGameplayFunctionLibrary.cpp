@@ -11,7 +11,8 @@ bool USGameplayFunctionLibrary::ApplyDamage(AActor* DamageCauser, AActor* Target
 	USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(TargetActor);
 	if (AttributeComp)
 	{
-		return AttributeComp->ApplyHealthChange(DamageCauser, -DamageAmount);
+		const float Damage = (DamageAmount < 0.0f ? DamageAmount : -DamageAmount);
+		return AttributeComp->ApplyHealthChange(DamageCauser, Damage);
 	}
 	return false;
 }

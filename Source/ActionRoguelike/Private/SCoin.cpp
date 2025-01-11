@@ -9,10 +9,6 @@
 ASCoin::ASCoin()
 {
 	GrantCreditsAmount = 20.0f;
-
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
-	Mesh->SetupAttachment(RootComponent);
-	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 

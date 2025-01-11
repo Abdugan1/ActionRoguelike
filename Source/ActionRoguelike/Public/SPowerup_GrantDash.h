@@ -4,21 +4,20 @@
 
 #include "CoreMinimal.h"
 #include "SPowerupActor.h"
-#include "SCoin.generated.h"
+#include "SPowerup_GrantDash.generated.h"
 
+class USAction;
 /**
  * 
  */
 UCLASS()
-class ACTIONROGUELIKE_API ASCoin : public ASPowerupActor
+class ACTIONROGUELIKE_API ASPowerup_GrantDash : public ASPowerupActor
 {
 	GENERATED_BODY()
+
 public:
-	ASCoin();
-
 	virtual void Interact_Implementation(APawn* InstigatorPawn) override;
-
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Coin")
-	float GrantCreditsAmount;
+	UPROPERTY(EditDefaultsOnly, Category = "Powerup")
+	TSubclassOf<USAction> DashAction;
 };

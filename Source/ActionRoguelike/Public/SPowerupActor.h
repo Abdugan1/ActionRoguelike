@@ -31,6 +31,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category="Components")
 	USphereComponent* InteractionSphereComp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UStaticMeshComponent* Mesh;
+
 	UPROPERTY(EditDefaultsOnly, Category="Powerup")
 	float RespawnTime;
 

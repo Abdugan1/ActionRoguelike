@@ -7,6 +7,7 @@
 #include "BrainComponent.h"
 #include "SActionComponent.h"
 #include "SAttributeComponent.h"
+#include "SCharacter.h"
 #include "SWorldUserWidget.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Blueprint/UserWidget.h"
@@ -33,11 +34,15 @@ ASAICharacter::ASAICharacter()
 void ASAICharacter::OnPawnSeen(APawn* Pawn)
 {
 	SetTargetActor(Pawn);
-	DrawDebugString(
-		GetWorld(), GetActorLocation(),
-		"PLAYER SPOTTED", nullptr,
-		FColor::White, 4.0f, true
-	);
+
+	//GetController().
+
+	if (ensure(SpottedWidgetClass))
+	{
+		USWorldUserWidget *ActiveSpottedWidget = CreateWidget<USWorldUserWidget>(GetWorld(), SpottedWidgetClass);
+		ActiveSpottedWidget->AttachedActor = this;
+		ActiveSpottedWidget->AddToViewport();
+	}
 }
 
 
