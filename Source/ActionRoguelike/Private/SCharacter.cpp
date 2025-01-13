@@ -37,6 +37,8 @@ ASCharacter::ASCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true; // true
 
 	bUseControllerRotationYaw = false; // false
+
+	HitFlashParamName = "HitFlashTime";
 }
 
 
@@ -124,14 +126,15 @@ void ASCharacter::PrimaryInteract()
 void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComponent, float NewHealth,
 	float Delta)
 {
+	// Damaged
 	if (Delta < 0.0f)
 	{
 		// Hit Flash
-		GetMesh()->SetScalarParameterValueOnMaterials("HitFlashTime", GetWorld()->TimeSeconds);
+		GetMesh()->SetScalarParameterValueOnMaterials(HitFlashParamName, GetWorld()->TimeSeconds);
 
 		// Apply rage change by factor. -Delta because it's damage, not heal
 		const float RageMultiplier = CVarRageMultiplier.GetValueOnGameThread();
-		AttributeComponent->ApplyRageChange(nullptr, -Delta * RageMultiplier); // @todo: Do I need an Instigator here?
+		AttributeComponent->ApplyRageChange(InstigatorActor, -Delta * RageMultiplier);
 
 		// Died
 		if (NewHealth <= 0.0f)

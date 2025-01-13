@@ -17,7 +17,10 @@ bool USPlayerAttributeComponent::ApplyRageChange(AActor* InstigatorActor, float 
 	Rage = FMath::Clamp(Rage + Delta, 0, RageMax);
 
 	const float ActualDelta = Rage - OldRage;
-	OnRageChanged.Broadcast(InstigatorActor, this, Rage, ActualDelta);
+	if (!FMath::IsNearlyZero(ActualDelta))
+	{
+		OnRageChanged.Broadcast(InstigatorActor, this, Rage, ActualDelta);
+	}
 
 	return !(FMath::IsNearlyZero(ActualDelta));
 }

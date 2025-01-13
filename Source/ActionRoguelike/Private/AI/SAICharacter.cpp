@@ -28,20 +28,25 @@ ASAICharacter::ASAICharacter()
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
 	GetMesh()->SetGenerateOverlapEvents(true);
+
+	TargetActorKey = "TargetActor";
+
+	HitFlashTimeParamName = "HitFlashTime";
 }
 
 
 void ASAICharacter::OnPawnSeen(APawn* Pawn)
 {
-	SetTargetActor(Pawn);
-
-	//GetController().
-
-	if (ensure(SpottedWidgetClass))
+	if (GetTargetActor() != Pawn)
 	{
-		USWorldUserWidget *ActiveSpottedWidget = CreateWidget<USWorldUserWidget>(GetWorld(), SpottedWidgetClass);
-		ActiveSpottedWidget->AttachedActor = this;
-		ActiveSpottedWidget->AddToViewport();
+		SetTargetActor(Pawn);
+
+		if (ensure(SpottedWidgetClass))
+		{
+			USWorldUserWidget* ActiveSpottedWidget = CreateWidget<USWorldUserWidget>(GetWorld(), SpottedWidgetClass);
+			ActiveSpottedWidget->AttachedActor = this;
+			ActiveSpottedWidget->AddToViewport(10);
+		}
 	}
 }
 
@@ -67,7 +72,7 @@ void ASAICharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponen
 			}
 		}
 
-		GetMesh()->SetScalarParameterValueOnMaterials("HitFlashTime", GetWorld()->TimeSeconds);
+		GetMesh()->SetScalarParameterValueOnMaterials(HitFlashTimeParamName, GetWorld()->TimeSeconds);
 
 		if (NewHealth <= 0.0f)
 		{
@@ -108,6 +113,17 @@ void ASAICharacter::SetTargetActor(AActor* NewTarget)
 	AAIController* MyController = Cast<AAIController>(GetController());
 	if (MyController)
 	{
-		MyController->GetBlackboardComponent()->SetValueAsObject("TargetActor", NewTarget);;
+		MyController->GetBlackboardComponent()->SetValueAsObject(TargetActorKey, NewTarget);;
 	}
+}
+
+
+AActor* ASAICharacter::GetTargetActor() const
+{
+	AAIController* MyController = Cast<AAIController>(GetController());
+	if (MyController)
+	{
+		return Cast<AActor>(MyController->GetBlackboardComponent()->GetValueAsObject(TargetActorKey));
+	}
+	return nullptr;
 }

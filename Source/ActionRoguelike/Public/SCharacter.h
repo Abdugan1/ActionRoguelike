@@ -62,4 +62,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USActionComponent* ActionComp;
+
+	UPROPERTY(VisibleAnywhere, Category = "Params|Effects")
+	FName HitFlashParamName;	
 };

@@ -28,7 +28,12 @@ protected:
 
 	virtual void PostInitializeComponents() override;
 
+	UFUNCTION(BlueprintCallable, Category = "AI")
 	void SetTargetActor(AActor *NewTarget);
+
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	AActor* GetTargetActor() const;
+
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category="Components")
@@ -48,4 +53,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> SpottedWidgetClass;
+
+	UPROPERTY(VisibleAnywhere, Category = "Params")
+	FName TargetActorKey;
+
+	UPROPERTY(VisibleAnywhere, Category = "Params")
+	FName HitFlashTimeParamName;
+
+
 };
