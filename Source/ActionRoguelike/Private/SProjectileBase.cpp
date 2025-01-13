@@ -30,6 +30,8 @@ ASProjectileBase::ASProjectileBase()
 
 	LoopAudioComp = CreateDefaultSubobject<UAudioComponent>("LoopAudioComp");
 	LoopAudioComp->SetupAttachment(SphereComp);
+
+	bReplicates = true;
 }
 
 

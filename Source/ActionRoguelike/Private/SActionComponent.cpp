@@ -93,6 +93,12 @@ bool USActionComponent::StartActionByName(AActor* Instigator, FName ActionName)
 				continue;
 			}
 
+			// Is Client?
+			if (!GetOwner()->HasAuthority())
+			{
+				ServerStartAction(Instigator, ActionName);
+			}
+
 			Action->StartAction(Instigator);
 			return true;
 		}
@@ -124,5 +130,11 @@ USActionComponent* USActionComponent::GetActionComponent(AActor* FromActor)
 		return Cast<USActionComponent>(FromActor->GetComponentByClass(USActionComponent::StaticClass()));
 	}
 	return nullptr;
+}
+
+
+void USActionComponent::ServerStartAction_Implementation(AActor* Instigator, FName ActionName)
+{
+	StartActionByName(Instigator, ActionName);
 }
 

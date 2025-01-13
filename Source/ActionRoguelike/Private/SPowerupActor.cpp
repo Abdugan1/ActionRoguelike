@@ -18,6 +18,8 @@ ASPowerupActor::ASPowerupActor()
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
 	Mesh->SetupAttachment(RootComponent);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	bReplicates = true;
 }
 
 

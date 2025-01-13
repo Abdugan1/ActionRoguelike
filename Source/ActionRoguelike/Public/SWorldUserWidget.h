@@ -18,14 +18,14 @@ class ACTIONROGUELIKE_API USWorldUserWidget : public UUserWidget
 protected:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
+public:
+	UPROPERTY(BlueprintReadOnly, Category = "UI", meta = (ExposeOnSpawn=true))
+	AActor* AttachedActor;
+
 protected:
 	UPROPERTY(meta = (BindWidget))
 	USizeBox* ParentSizeBox;
 
 	UPROPERTY(EditAnywhere, Category = "UI")
 	FVector WorldOffset;
-
-public:
-	UPROPERTY(BlueprintReadOnly, Category = "UI")
-	AActor* AttachedActor;
 };
