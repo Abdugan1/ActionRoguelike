@@ -16,11 +16,18 @@ USEffect_Thorn::USEffect_Thorn()
 void USEffect_Thorn::ReflectDamage(AActor* InstigatorActor, USAttributeComponent* OwningComponent, float NewHealth,
 	float Delta)
 {
-	if (Delta < 0.0f)
-	{
-		const float ReflectDamage = Delta * ReflectCoeff;
+	AActor* OwningActor = OwningComponent->GetOwner();
 
-		USGameplayFunctionLibrary::ApplyDamage(OwningComponent->GetOwner(), InstigatorActor, ReflectDamage);
+	// If it's damage and do not hit ourselves
+	if (Delta < 0.0f && InstigatorActor != OwningActor)
+	{
+		const int32 ReflectedAmount = FMath::RoundToInt(Delta * ReflectCoeff);
+		if (ReflectedAmount == 0)
+		{
+			return;
+		}
+
+		USGameplayFunctionLibrary::ApplyDamage(OwningActor, InstigatorActor, ReflectedAmount);
 	}
 }
 

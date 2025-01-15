@@ -31,9 +31,13 @@ public:
 	float GetRageScaled() const;
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
+	UFUNCTION(NetMulticast, Reliable) // @todo unreliable?
+	void MulticastRageChanged(AActor* InstigatorActor, float NewRage, float Delta);
+
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated, Category = "Attributes")
 	float Rage;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated, Category = "Attributes")
 	float RageMax;
 };

@@ -44,6 +44,10 @@ protected:
 	UFUNCTION()
 	void OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComponent, float NewHealth, float Delta);
 
+protected:
+	UFUNCTION(Server, Reliable)
+	void ServerApplyRageChange(AActor *InstigatorActor, float Delta);
+
 public:	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 

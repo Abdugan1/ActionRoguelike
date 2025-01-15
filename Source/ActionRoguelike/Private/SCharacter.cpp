@@ -134,7 +134,9 @@ void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent*
 
 		// Apply rage change by factor. -Delta because it's damage, not heal
 		const float RageMultiplier = CVarRageMultiplier.GetValueOnGameThread();
-		AttributeComponent->ApplyRageChange(InstigatorActor, -Delta * RageMultiplier);
+		const float RageDelta = -Delta * RageMultiplier;
+		//AttributeComponent->ApplyRageChange(InstigatorActor, RageDelta);
+		//ServerApplyRageChange(InstigatorActor, RageDelta);
 
 		// Died
 		if (NewHealth <= 0.0f)
@@ -145,6 +147,11 @@ void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent*
 	}
 }
 
+
+void ASCharacter::ServerApplyRageChange_Implementation(AActor* InstigatorActor, float Delta)
+{
+	AttributeComponent->ApplyRageChange(InstigatorActor, Delta);
+}
 
 //void ASCharacter::Tick(float DeltaTime)
 //{

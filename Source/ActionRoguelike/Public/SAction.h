@@ -32,16 +32,25 @@ public:
 
 	virtual class UWorld* GetWorld() const override;
 
+	virtual bool IsSupportedForNetworking() const override
+	{
+		return true;
+	}
+
+protected:
+	UFUNCTION()
+	void OnRep_IsRunning();
+
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Action")
 	FName ActionName;
 
-public:
 	/* Start immediately when added to an action component */
 	UPROPERTY(EditDefaultsOnly, Category = "Action")
 	bool bAutoStart;
 
 protected:
+	UPROPERTY(ReplicatedUsing="OnRep_IsRunning")
 	bool bIsRunning;
 
 	/* Tags added to owning actor when activated, removed when action stops */

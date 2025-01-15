@@ -3,11 +3,15 @@
 
 #include "SPlayerAttributeComponent.h"
 
+#include "Net/UnrealNetwork.h"
+
 
 USPlayerAttributeComponent::USPlayerAttributeComponent()
 {
 	Rage = 0.0f;
 	RageMax = 100;
+
+	SetIsReplicatedByDefault(true);
 }
 
 
@@ -19,7 +23,8 @@ bool USPlayerAttributeComponent::ApplyRageChange(AActor* InstigatorActor, float 
 	const float ActualDelta = Rage - OldRage;
 	if (!FMath::IsNearlyZero(ActualDelta))
 	{
-		OnRageChanged.Broadcast(InstigatorActor, this, Rage, ActualDelta);
+		//OnRageChanged.Broadcast(InstigatorActor, this, Rage, Delta);
+		MulticastRageChanged(InstigatorActor, Rage, ActualDelta);
 	}
 
 	return !(FMath::IsNearlyZero(ActualDelta));
@@ -37,3 +42,17 @@ float USPlayerAttributeComponent::GetRageScaled() const
 	return Rage / RageMax;
 }
 
+
+void USPlayerAttributeComponent::MulticastRageChanged_Implementation(AActor* InstigatorActor, float NewRage, float Delta)
+{
+	OnRageChanged.Broadcast(InstigatorActor, this, NewRage, Delta);
+}
+
+
+void USPlayerAttributeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(USPlayerAttributeComponent, Rage);
+	DOREPLIFETIME(USPlayerAttributeComponent, RageMax);
+}
