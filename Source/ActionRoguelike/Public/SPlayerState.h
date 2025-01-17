@@ -27,6 +27,10 @@ public:
 	static ASPlayerState* GetPlayerStateOfPawn(APawn* Pawn);
 
 protected:
-	UPROPERTY(VisibleAnywhere, Category = "PlayerState")
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastOnCreditsChanged(float NewCredits, float Delta);
+
+protected:
+	UPROPERTY(VisibleAnywhere, Replicated, Category = "PlayerState")
 	float Credits;
 };

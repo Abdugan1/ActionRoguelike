@@ -34,6 +34,9 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	AActor* GetTargetActor() const;
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastShowSpottedUIWidget();
+
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category="Components")

@@ -10,6 +10,10 @@
 #include "Engine/ActorChannel.h"
 #include "Net/UnrealNetwork.h"
 
+
+static TAutoConsoleVariable<bool> CVarActionCompDebug{ TEXT("su.ActionCompDebug"), true, TEXT("Show action component stats"), ECVF_Cheat };
+
+
 USActionComponent::USActionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -40,6 +44,12 @@ void USActionComponent::TickComponent(float DeltaTime, enum ELevelTick TickType,
 
 	//FString DebugMsg = GetNameSafe(GetOwner()) + " : " + ActiveGameplayTags.ToStringSimple();
 	//GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::White, DebugMsg);
+
+	const bool bDebug = CVarActionCompDebug.GetValueOnGameThread();
+	if (!bDebug)
+	{
+		return;
+	}
 
 	for (USAction *Action : Actions)
 	{

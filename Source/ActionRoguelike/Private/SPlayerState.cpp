@@ -3,10 +3,14 @@
 
 #include "SPlayerState.h"
 
+#include "Net/UnrealNetwork.h"
+
 
 ASPlayerState::ASPlayerState()
 {
 	Credits = 0;
+
+	bReplicates = true;
 }
 
 
@@ -19,8 +23,10 @@ float ASPlayerState::GetCredits() const
 void ASPlayerState::ApplyCreditsChange(float Delta)
 {
 	Credits += Delta;
-	OnCreditsChanged.Broadcast(Credits, Delta);
+	//OnCreditsChanged.Broadcast(Credits, Delta);
+	MulticastOnCreditsChanged(Credits, Delta);
 }
+
 
 ASPlayerState* ASPlayerState::GetPlayerStateOfPawn(APawn* Pawn)
 {
@@ -30,4 +36,18 @@ ASPlayerState* ASPlayerState::GetPlayerStateOfPawn(APawn* Pawn)
 	}
 
 	return nullptr;
+}
+
+
+void ASPlayerState::MulticastOnCreditsChanged_Implementation(float NewCredits, float Delta)
+{
+	OnCreditsChanged.Broadcast(NewCredits, Delta);
+}
+
+
+void ASPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ASPlayerState, Credits);
 }

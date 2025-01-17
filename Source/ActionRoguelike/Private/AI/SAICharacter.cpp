@@ -43,9 +43,7 @@ void ASAICharacter::OnPawnSeen(APawn* Pawn)
 
 		if (ensure(SpottedWidgetClass))
 		{
-			USWorldUserWidget* ActiveSpottedWidget = CreateWidget<USWorldUserWidget>(GetWorld(), SpottedWidgetClass);
-			ActiveSpottedWidget->AttachedActor = this;
-			ActiveSpottedWidget->AddToViewport(10);
+			MulticastShowSpottedUIWidget();
 		}
 	}
 }
@@ -126,4 +124,12 @@ AActor* ASAICharacter::GetTargetActor() const
 		return Cast<AActor>(MyController->GetBlackboardComponent()->GetValueAsObject(TargetActorKey));
 	}
 	return nullptr;
+}
+
+
+void ASAICharacter::MulticastShowSpottedUIWidget_Implementation()
+{
+	USWorldUserWidget* ActiveSpottedWidget = CreateWidget<USWorldUserWidget>(GetWorld(), SpottedWidgetClass);
+	ActiveSpottedWidget->AttachedActor = this;
+	ActiveSpottedWidget->AddToViewport(10);
 }

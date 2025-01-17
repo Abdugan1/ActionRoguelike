@@ -27,6 +27,9 @@ protected:
 private:
 	void SetPowerupState(bool bIsActive);
 
+	UFUNCTION()
+	void OnRep_PowerupState();
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category="Components")
 	USphereComponent* InteractionSphereComp;
@@ -36,6 +39,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="Powerup")
 	float RespawnTime;
+
+	UPROPERTY(ReplicatedUsing="OnRep_PowerupState")
+	bool bPowerupState;
 
 	FTimerHandle RespawnTimerHandle;
 };

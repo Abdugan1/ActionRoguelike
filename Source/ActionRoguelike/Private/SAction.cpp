@@ -24,6 +24,7 @@ void USAction::StopAction_Implementation(AActor* Instigator)
 	//UE_LOG(LogTemp, Log, TEXT("Stopped: %s"), *GetNameSafe(this));
 	LogOnScreen(this, FString::Printf(TEXT("Stopped: %s"), *GetNameSafe(this)), FColor::White);
 
+	// No longer a valid sanity check, as it's only valid in the server.
 	//ensureAlways(bIsRunning);
 
 	USActionComponent* Comp = GetOwningComponent();

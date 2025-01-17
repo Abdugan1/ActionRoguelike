@@ -4,6 +4,7 @@
 #include "SPowerupActor.h"
 
 #include "Components/SphereComponent.h"
+#include "Net/UnrealNetwork.h"
 
 
 ASPowerupActor::ASPowerupActor()
@@ -11,13 +12,15 @@ ASPowerupActor::ASPowerupActor()
 	InteractionSphereComp = CreateDefaultSubobject<USphereComponent>("InteractionSphereComp");
 	InteractionSphereComp->SetCollisionProfileName("Powerup");
 
-	RespawnTime = 10.0f;
-
 	RootComponent = InteractionSphereComp;
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
 	Mesh->SetupAttachment(RootComponent);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	RespawnTime = 1.0f;
+
+	bPowerupState = true;
 
 	bReplicates = true;
 }
@@ -45,6 +48,23 @@ void ASPowerupActor::HideAndCooldownPowerup()
 
 void ASPowerupActor::SetPowerupState(bool bIsActive)
 {
-	SetActorEnableCollision(bIsActive);
-	RootComponent->SetVisibility(bIsActive, true);
+	bPowerupState = bIsActive;
+	OnRep_PowerupState();
+	//SetActorEnableCollision(bIsActive);
+	//RootComponent->SetVisibility(bIsActive, true);
+}
+
+
+void ASPowerupActor::OnRep_PowerupState()
+{
+	SetActorEnableCollision(bPowerupState);
+	RootComponent->SetVisibility(bPowerupState, true);
+}
+
+
+void ASPowerupActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ASPowerupActor, bPowerupState);
 }
