@@ -57,24 +57,28 @@ bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Delt
 		Delta *= DamageMultiplier;
 	}
 
-	float OldHealth = Health;
-	Health = FMath::Clamp(Health + Delta, 0, HealthMax);
+	const float OldHealth = Health;
+	const float NewHealth = FMath::Clamp(Health + Delta, 0, HealthMax);
+	const float ActualDelta = NewHealth - OldHealth;
 
-	float ActualDelta = Health - OldHealth;
-
-	if (!FMath::IsNearlyZero(ActualDelta))
+	// Is Server?
+	if (GetOwner()->HasAuthority())
 	{
-		MulticastHealthChanged(InstigatorActor, Health, ActualDelta);
-	}
-	//OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta);
+		Health = NewHealth;
 
-	// Died
-	if (ActualDelta < 0.0f && FMath::IsNearlyEqual(Health, 0.0f))
-	{
-		ASGameModeBase* GameMode = GetWorld()->GetAuthGameMode<ASGameModeBase>();
-		if (GameMode)
+		if (!FMath::IsNearlyZero(ActualDelta))
 		{
-			GameMode->OnActorKilled(GetOwner(), InstigatorActor);
+			MulticastHealthChanged(InstigatorActor, Health, ActualDelta);
+		}
+
+		// Died
+		if (ActualDelta < 0.0f && FMath::IsNearlyEqual(Health, 0.0f))
+		{
+			ASGameModeBase* GameMode = GetWorld()->GetAuthGameMode<ASGameModeBase>();
+			if (GameMode)
+			{
+				GameMode->OnActorKilled(GetOwner(), InstigatorActor);
+			}
 		}
 	}
 

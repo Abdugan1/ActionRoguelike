@@ -7,6 +7,21 @@
 #include "SAction.generated.h"
 
 class USActionComponent;
+
+
+USTRUCT()
+struct FActionRepData
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY()
+	bool bIsRunning;
+
+	UPROPERTY()
+	AActor* Instigator;
+};
+
+
 /**
  * 
  */
@@ -39,7 +54,7 @@ public:
 
 protected:
 	UFUNCTION()
-	void OnRep_IsRunning();
+	void OnRep_RepData();
 
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Action")
@@ -50,8 +65,9 @@ public:
 	bool bAutoStart;
 
 protected:
-	UPROPERTY(ReplicatedUsing="OnRep_IsRunning")
-	bool bIsRunning;
+	UPROPERTY(ReplicatedUsing="OnRep_RepData")
+	FActionRepData RepData;
+	//bool bIsRunning;
 
 	/* Tags added to owning actor when activated, removed when action stops */
 	UPROPERTY(EditDefaultsOnly, Category = "Tags")

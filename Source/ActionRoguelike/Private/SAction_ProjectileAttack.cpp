@@ -34,12 +34,16 @@ void USAction_ProjectileAttack::StartAction_Implementation(AActor* Instigator)
 	{
 		StartAttackEffects(Character);
 
-		FTimerHandle TimerHandle_AttackDelay;
+		// Is Server?
+		if (Character->HasAuthority())
+		{
+			FTimerHandle TimerHandle_AttackDelay;
 
-		FTimerDelegate Delegate;
-		Delegate.BindUObject(this, &USAction_ProjectileAttack::AttackDelay_Elapsed, Character);
+			FTimerDelegate Delegate;
+			Delegate.BindUObject(this, &USAction_ProjectileAttack::AttackDelay_Elapsed, Character);
 
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle_AttackDelay, Delegate, AttackDelay, false);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle_AttackDelay, Delegate, AttackDelay, false);
+		}
 	}
 }
 

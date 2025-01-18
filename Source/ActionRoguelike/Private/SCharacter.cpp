@@ -8,6 +8,7 @@
 #include "SInteractionComponent.h"
 #include "TimerManager.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -146,6 +147,19 @@ void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent*
 		{
 			APlayerController* PlayerController = Cast<APlayerController>(GetController());
 			DisableInput(PlayerController);
+
+			// Disable Collision
+			GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+			// Was needed in AICharacter. Not sure if it applies here...
+			// Also don't know if that's needed at all. Since Tom said it was needed 
+			// to prevent Ragdoll items from falling down through the floor.
+			// Or because since we disabling movement, so it also somehow affects...
+
+			//GetCharacterMovement()->DisableMovement();
+
+			// Set lifespan
+			SetLifeSpan(10.0f);
 		}
 	}
 }
