@@ -3,6 +3,7 @@
 
 #include "SPlayerState.h"
 
+#include "SSaveGame.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -14,7 +15,7 @@ ASPlayerState::ASPlayerState()
 }
 
 
-float ASPlayerState::GetCredits() const
+int32 ASPlayerState::GetCredits() const
 {
 	return Credits;
 }
@@ -36,6 +37,24 @@ ASPlayerState* ASPlayerState::GetPlayerStateOfPawn(APawn* Pawn)
 	}
 
 	return nullptr;
+}
+
+
+void ASPlayerState::SavePlayerState_Implementation(USSaveGame* SaveObject)
+{
+	if (SaveObject)
+	{
+		SaveObject->Credits = Credits;
+	}
+}
+
+
+void ASPlayerState::LoadPlayerState_Implementation(USSaveGame* SaveObject)
+{
+	if (SaveObject)
+	{
+		Credits = SaveObject->Credits;
+	}
 }
 
 

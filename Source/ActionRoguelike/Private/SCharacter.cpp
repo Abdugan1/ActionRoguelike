@@ -140,8 +140,6 @@ void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent*
 		{
 			AttributeComponent->ApplyRageChange(InstigatorActor, RageDelta);
 		}
-		//ServerApplyRageChange(InstigatorActor, RageDelta);
-
 		// Died
 		if (NewHealth <= 0.0f)
 		{

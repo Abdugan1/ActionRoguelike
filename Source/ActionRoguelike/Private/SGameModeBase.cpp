@@ -8,12 +8,16 @@
 #include "SCharacter.h"
 #include "SPlayerState.h"
 #include "SPowerupActor.h"
+#include "SSaveGame.h"
 #include "AI/SAICharacter.h"
 #include "EnvironmentQuery/EnvQueryManager.h"
+#include "GameFramework/GameStateBase.h"
+#include "Kismet/GameplayStatics.h"
+#include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 
 static TAutoConsoleVariable<bool> CVarSpawnBots{TEXT("su.SpawnBots"), true, TEXT("Enable spawning of bots via timer"), ECVF_Cheat};
 
-static TAutoConsoleVariable<float> CVarCreditsGrantAmount{ TEXT("su.CreditsGrantAmount"), 20, TEXT("Credits grant amount per a kill"), ECVF_Cheat };
+static TAutoConsoleVariable<int32> CVarCreditsGrantAmount{ TEXT("su.CreditsGrantAmount"), 20, TEXT("Credits grant amount per a kill"), ECVF_Cheat };
 
 
 ASGameModeBase::ASGameModeBase()
@@ -24,12 +28,25 @@ ASGameModeBase::ASGameModeBase()
 	SpawnTimerInterval = 2.0f;
 
 	MaxBotCount = 10;
+
+	SlotName = "SaveGame01";
+}
+
+
+void ASGameModeBase::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+	Super::InitGame(MapName, Options, ErrorMessage);
+
+	// Tom says it's gonna crash in UE5. Not sure though...
+	//LoadSaveGame();
 }
 
 
 void ASGameModeBase::StartPlay()
 {
 	Super::StartPlay();
+
+	LoadSaveGame();
 
 	// Bot Spawn Timer
 	GetWorldTimerManager().SetTimer(
@@ -56,6 +73,18 @@ void ASGameModeBase::StartPlay()
 }
 
 
+void ASGameModeBase::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
+{
+	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+
+	ASPlayerState* PS = NewPlayer->GetPlayerState<ASPlayerState>();
+	if (PS)
+	{
+		PS->LoadPlayerState(CurrentSaveGame);
+	}
+}
+
+
 void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
 {
 	// If the Killer is the Player, grant Credits
@@ -64,9 +93,9 @@ void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
 		ASPlayerState* PlayerState = ASPlayerState::GetPlayerStateOfPawn(Player);
 		if (ensure(PlayerState))
 		{
-			const float CreditGrantAmount = CVarCreditsGrantAmount.GetValueOnGameThread();
+			const int32 CreditGrantAmount = CVarCreditsGrantAmount.GetValueOnGameThread();
 			PlayerState->ApplyCreditsChange(CreditGrantAmount);
-			UE_LOG(LogTemp, Log, TEXT("Granting %f credits for killing. Credits: %f"), CreditGrantAmount, PlayerState->GetCredits());
+			UE_LOG(LogTemp, Log, TEXT("Granting %i credits for killing. Credits: %i"), CreditGrantAmount, PlayerState->GetCredits());
 		}
 	}
 
@@ -84,6 +113,106 @@ void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
 	}
 
 	UE_LOG(LogTemp, Log, TEXT("OnActorKilled: Vicim: %s, Killer: %s"), *GetNameSafe(VictimActor), *GetNameSafe(Killer));
+}
+
+
+void ASGameModeBase::WriteSaveGame()
+{
+	for (int32 i = 0; i < GameState->PlayerArray.Num(); i++)
+	{
+		ASPlayerState* PS = Cast<ASPlayerState>(GameState->PlayerArray[i]);
+		if (PS)
+		{
+			PS->SavePlayerState(CurrentSaveGame);
+			break; // Single Player only at this point
+		}
+	}
+
+	CurrentSaveGame->SavedActors.Empty();
+
+	// Iterate the entire world of actors
+	for (FActorIterator It(GetWorld()); It; ++It)
+	{
+		AActor* Actor = *It;
+		if (!Actor->Implements<USGameplayInterface>())
+		{
+			continue;
+		}
+
+		FActorSaveData ActorData;
+		ActorData.ActorName = Actor->GetName();
+		ActorData.Transform = Actor->GetActorTransform();
+
+		// Pass the array to fill with data from Actor
+		FMemoryWriter MemWriter(ActorData.ByteData);
+
+		FObjectAndNameAsStringProxyArchive Ar(MemWriter, true);
+		// Find only variables with UPROPERTY(SaveGame)
+		Ar.ArIsSaveGame = true;
+		// Converts Actor's SaveGame UPROPERTies into binary array
+		Actor->Serialize(Ar);
+
+		CurrentSaveGame->SavedActors.Add(ActorData);
+	}
+
+	UGameplayStatics::SaveGameToSlot(CurrentSaveGame, SlotName, 0);
+}
+
+
+void ASGameModeBase::LoadSaveGame()
+{
+	if (UGameplayStatics::DoesSaveGameExist(SlotName, 0))
+	{
+		CurrentSaveGame = Cast<USSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName, 0));
+		if (CurrentSaveGame == nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed to load SaveGame Data."));
+			return;
+		}
+		UE_LOG(LogTemp, Log, TEXT("Loaded SaveGame Data."));
+
+		// Iterate the entire world of actors
+		for (FActorIterator It(GetWorld()); It; ++It)
+		{
+			AActor* Actor = *It;
+			if (!Actor->Implements<USGameplayInterface>())
+			{
+				continue;
+			}
+
+			for (FActorSaveData ActorData : CurrentSaveGame->SavedActors)
+			{
+				if (ActorData.ActorName == Actor->GetName())
+				{
+					Actor->SetActorTransform(ActorData.Transform);
+
+					// Pass the array to fill with data from Actor
+					FMemoryReader MemReader(ActorData.ByteData);
+
+					FObjectAndNameAsStringProxyArchive Ar(MemReader, true);
+					// Find only variables with UPROPERTY(SaveGame)
+					Ar.ArIsSaveGame = true;
+					// Convert binary array back into actor's variables
+					Actor->Serialize(Ar);
+
+					ISGameplayInterface::Execute_OnActorLoaded(Actor);
+
+					break;
+				}
+			}
+
+			FActorSaveData ActorData;
+			ActorData.ActorName = Actor->GetName();
+			ActorData.Transform = Actor->GetActorTransform();
+
+			CurrentSaveGame->SavedActors.Add(ActorData);
+		}
+	}
+	else
+	{
+		CurrentSaveGame = Cast<USSaveGame>(UGameplayStatics::CreateSaveGameObject(USSaveGame::StaticClass()));
+		UE_LOG(LogTemp, Log, TEXT("Created SaveGame Data."));
+	}
 }
 
 

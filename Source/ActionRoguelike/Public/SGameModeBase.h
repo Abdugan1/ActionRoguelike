@@ -8,6 +8,7 @@
 #include "SGameModeBase.generated.h"
 
 class ASPowerupActor;
+class USSaveGame;
 
 /**
  * 
@@ -20,9 +21,17 @@ class ACTIONROGUELIKE_API ASGameModeBase : public AGameModeBase
 public:
 	ASGameModeBase();
 
+	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
 	void StartPlay() override;
 
+	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
+
 	virtual void OnActorKilled(AActor* VictimActor, AActor* Killer);
+
+	UFUNCTION(BlueprintCallable, Category = "SaveGame")
+	void WriteSaveGame();
+
+	void LoadSaveGame();
 
 	UFUNCTION(Exec)
 	void KillAll();
@@ -71,4 +80,11 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "PowerUps")
 	UEnvQuery* SpawnPowerupsQuery;
+
+
+	UPROPERTY(VisibleAnywhere, Category = "SaveGame")
+	FString SlotName;
+
+	UPROPERTY()
+	USSaveGame* CurrentSaveGame;
 };
