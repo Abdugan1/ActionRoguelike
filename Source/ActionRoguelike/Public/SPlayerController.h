@@ -18,4 +18,17 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void BlueprintBeginPlayingState();
+
+	UFUNCTION(BlueprintCallable)
+	void TogglePauseMenu();
+
+	void SetupInputComponent() override;
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> PauseMenuClass;
+
+	UPROPERTY()
+	UUserWidget* PauseMenInstance;
+
 };
