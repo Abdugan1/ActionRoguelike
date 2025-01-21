@@ -24,8 +24,7 @@ int32 ASPlayerState::GetCredits() const
 void ASPlayerState::ApplyCreditsChange(float Delta)
 {
 	Credits += Delta;
-	//OnCreditsChanged.Broadcast(Credits, Delta);
-	MulticastOnCreditsChanged(Credits, Delta);
+	OnCreditsChanged.Broadcast(this, Credits, Delta);
 }
 
 
@@ -40,11 +39,21 @@ ASPlayerState* ASPlayerState::GetPlayerStateOfPawn(APawn* Pawn)
 }
 
 
+void ASPlayerState::OnRep_Credits(int32 OldCredits)
+{
+	OnCreditsChanged.Broadcast(this, Credits, Credits - OldCredits);
+}
+
+
 void ASPlayerState::SavePlayerState_Implementation(USSaveGame* SaveObject)
 {
 	if (SaveObject)
 	{
 		SaveObject->Credits = Credits;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SaveObject is null! Cannot save game state!"));
 	}
 }
 
@@ -53,14 +62,14 @@ void ASPlayerState::LoadPlayerState_Implementation(USSaveGame* SaveObject)
 {
 	if (SaveObject)
 	{
-		Credits = SaveObject->Credits;
+		/* We could do this, but it won't trigger the changed event.*/
+		//Credits = SaveObject->Credits;
+		ApplyCreditsChange(SaveObject->Credits);
 	}
-}
-
-
-void ASPlayerState::MulticastOnCreditsChanged_Implementation(float NewCredits, float Delta)
-{
-	OnCreditsChanged.Broadcast(NewCredits, Delta);
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SaveObject is null! Cannot load game state!"));
+	}
 }
 
 

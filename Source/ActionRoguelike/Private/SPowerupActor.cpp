@@ -50,8 +50,6 @@ void ASPowerupActor::SetPowerupState(bool bIsActive)
 {
 	bPowerupState = bIsActive;
 	OnRep_PowerupState();
-	//SetActorEnableCollision(bIsActive);
-	//RootComponent->SetVisibility(bIsActive, true);
 }
 
 

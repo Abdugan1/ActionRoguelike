@@ -7,7 +7,8 @@
 #include "SPlayerState.generated.h"
 
 class USSaveGame;
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCreditsChanged, float, NewCredits, float, Delta);
+class ASPlayerState;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnCreditsChanged, ASPlayerState*, PlayerState, float, NewCredits, float, Delta);
 
 /**
  * 
@@ -37,10 +38,15 @@ public:
 	void LoadPlayerState(USSaveGame* SaveObject);
 
 protected:
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastOnCreditsChanged(float NewCredits, float Delta);
+	// Downside of using this is that we send over more data over the net, since it's an RPC with two parameters. OnRep_ is "free"
+	// since Credits is already getting replicated anyway
+	//UFUNCTION(NetMulticast, Reliable)
+	//void MulticastOnCreditsChanged(float NewCredits, float Delta);
+
+	UFUNCTION()
+	void OnRep_Credits(int32 OldCredits);
 
 protected:
-	UPROPERTY(VisibleAnywhere, Replicated, Category = "PlayerState")
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing="OnRep_Credits", Category = "PlayerState")
 	int32 Credits;
 };

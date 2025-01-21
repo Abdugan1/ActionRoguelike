@@ -3,6 +3,7 @@
 
 #include "SEffect_Thorn.h"
 
+#include "SActionComponent.h"
 #include "SAttributeComponent.h"
 #include "SGameplayFunctionLibrary.h"
 
@@ -16,7 +17,7 @@ USEffect_Thorn::USEffect_Thorn()
 void USEffect_Thorn::ReflectDamage(AActor* InstigatorActor, USAttributeComponent* OwningComponent, float NewHealth,
 	float Delta)
 {
-	AActor* OwningActor = OwningComponent->GetOwner();
+	AActor* OwningActor = GetOwningComponent()->GetOwner();
 
 	// If it's damage and do not hit ourselves
 	if (Delta < 0.0f && InstigatorActor != OwningActor)
@@ -42,7 +43,7 @@ void USEffect_Thorn::StopAction_Implementation(AActor* Instigator)
 {
 	Super::StopAction_Implementation(Instigator);
 
-	USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(Instigator);
+	USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(GetOwningComponent()->GetOwner());
 	if (ensure(AttributeComp))
 	{
 		AttributeComp->OnHealthChanged.RemoveDynamic(this, &USEffect_Thorn::ReflectDamage);
@@ -54,7 +55,7 @@ void USEffect_Thorn::StartAction_Implementation(AActor* Instigator)
 {
 	Super::StartAction_Implementation(Instigator);
 
-	USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(Instigator);
+	USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(GetOwningComponent()->GetOwner());
 	if (ensure(AttributeComp))
 	{
 		AttributeComp->OnHealthChanged.AddDynamic(this, &USEffect_Thorn::ReflectDamage);

@@ -7,10 +7,17 @@
 #include "Net/UnrealNetwork.h"
 
 
+static TAutoConsoleVariable<bool> CVarActionsDebug{ TEXT("su.ActionsDebug"), false, TEXT("Show actions started/stopped on screen"), ECVF_Cheat };
+
+
 void USAction::StartAction_Implementation(AActor* Instigator)
 {
 	//UE_LOG(LogTemp, Log, TEXT("Running: %s"), *GetNameSafe(this));
-	LogOnScreen(this, FString::Printf(TEXT("Running: %s"), *GetNameSafe(this)), FColor::Green);
+	const bool bDebug = CVarActionsDebug.GetValueOnGameThread();
+	if (bDebug)
+	{
+		LogOnScreen(this, FString::Printf(TEXT("Running: %s"), *GetNameSafe(this)), FColor::Green);
+	}
 
 	USActionComponent* Comp = GetOwningComponent();
 	Comp->ActiveGameplayTags.AppendTags(GrantsTags);
@@ -23,7 +30,11 @@ void USAction::StartAction_Implementation(AActor* Instigator)
 void USAction::StopAction_Implementation(AActor* Instigator)
 {
 	//UE_LOG(LogTemp, Log, TEXT("Stopped: %s"), *GetNameSafe(this));
-	LogOnScreen(this, FString::Printf(TEXT("Stopped: %s"), *GetNameSafe(this)), FColor::White);
+	const bool bDebug = CVarActionsDebug.GetValueOnGameThread();
+	if (bDebug)
+	{
+		LogOnScreen(this, FString::Printf(TEXT("Stopped: %s"), *GetNameSafe(this)), FColor::White);
+	}
 
 	// No longer a valid sanity check, as it's only valid in the server.
 	//ensureAlways(bIsRunning);

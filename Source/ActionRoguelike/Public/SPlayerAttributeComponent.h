@@ -31,7 +31,7 @@ public:
 	float GetRageScaled() const;
 
 protected:
-	UFUNCTION(NetMulticast, Reliable) // @todo unreliable?
+	UFUNCTION(NetMulticast, Unreliable) 
 	void MulticastRageChanged(AActor* InstigatorActor, float NewRage, float Delta);
 
 protected:

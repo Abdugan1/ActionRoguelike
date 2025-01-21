@@ -15,7 +15,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 
-static TAutoConsoleVariable<bool> CVarSpawnBots{TEXT("su.SpawnBots"), true, TEXT("Enable spawning of bots via timer"), ECVF_Cheat};
+static TAutoConsoleVariable<bool> CVarSpawnBots{TEXT("su.SpawnBots"), false, TEXT("Enable spawning of bots via timer"), ECVF_Cheat};
 
 static TAutoConsoleVariable<int32> CVarCreditsGrantAmount{ TEXT("su.CreditsGrantAmount"), 20, TEXT("Credits grant amount per a kill"), ECVF_Cheat };
 
@@ -38,7 +38,7 @@ void ASGameModeBase::InitGame(const FString& MapName, const FString& Options, FS
 	Super::InitGame(MapName, Options, ErrorMessage);
 
 	// Tom says it's gonna crash in UE5. Not sure though...
-	//LoadSaveGame();
+	LoadSaveGame();
 }
 
 
@@ -46,7 +46,7 @@ void ASGameModeBase::StartPlay()
 {
 	Super::StartPlay();
 
-	LoadSaveGame();
+	//LoadSaveGame();
 
 	// Bot Spawn Timer
 	GetWorldTimerManager().SetTimer(
@@ -73,33 +73,41 @@ void ASGameModeBase::StartPlay()
 }
 
 
+// Warning: It seems this runs before BeginPlay. So if Tom's saying of potential error is true
+// and if I moved LoadSaveGame in BeginPlay, then CurrentSaveGame is not valid, which will not
+// load the data!
 void ASGameModeBase::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
 {
-	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
-
 	ASPlayerState* PS = NewPlayer->GetPlayerState<ASPlayerState>();
-	if (PS)
+	if (ensure(PS))
 	{
 		PS->LoadPlayerState(CurrentSaveGame);
 	}
+
+
+	// Calling this before loading the game calls bunch of functions, including the PlayerController::BeginPlayingState
+	// which we are using to init the Main HUD. So a whole of things will not work properly.
+	// So loading first, doing this second
+	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
 }
 
 
 void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
 {
 	// If the Killer is the Player, grant Credits
-	if (ASCharacter *Player = Cast<ASCharacter>(Killer))
+	APawn* KillerPawn = Cast<ASCharacter>(Killer);
+	if (KillerPawn && KillerPawn != VictimActor)
 	{
-		ASPlayerState* PlayerState = ASPlayerState::GetPlayerStateOfPawn(Player);
-		if (ensure(PlayerState))
+		ASPlayerState* PlayerState = ASPlayerState::GetPlayerStateOfPawn(KillerPawn);
+		if (PlayerState)
 		{
 			const int32 CreditGrantAmount = CVarCreditsGrantAmount.GetValueOnGameThread();
 			PlayerState->ApplyCreditsChange(CreditGrantAmount);
-			UE_LOG(LogTemp, Log, TEXT("Granting %i credits for killing. Credits: %i"), CreditGrantAmount, PlayerState->GetCredits());
 		}
 	}
 
 
+	// Respawn after delay
 	ASCharacter* Player = Cast<ASCharacter>(VictimActor);
 	if (Player)
 	{
@@ -111,8 +119,6 @@ void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
 		float RespawnDelay = 2.0f;
 		GetWorldTimerManager().SetTimer(TimerHandle_RespawnDelay, Delegate, RespawnDelay, false);
 	}
-
-	UE_LOG(LogTemp, Log, TEXT("OnActorKilled: Vicim: %s, Killer: %s"), *GetNameSafe(VictimActor), *GetNameSafe(Killer));
 }
 
 
@@ -124,6 +130,7 @@ void ASGameModeBase::WriteSaveGame()
 		if (PS)
 		{
 			PS->SavePlayerState(CurrentSaveGame);
+			UE_LOG(LogTemp, Warning, TEXT("Keep in mind this saving is single player only!"));
 			break; // Single Player only at this point
 		}
 	}

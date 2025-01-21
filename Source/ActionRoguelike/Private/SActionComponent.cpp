@@ -11,7 +11,7 @@
 #include "Net/UnrealNetwork.h"
 
 
-static TAutoConsoleVariable<bool> CVarActionCompDebug{ TEXT("su.ActionCompDebug"), true, TEXT("Show action component stats"), ECVF_Cheat };
+static TAutoConsoleVariable<bool> CVarActionCompDebug{ TEXT("su.ActionCompDebug"), false, TEXT("Show action component stats"), ECVF_Cheat };
 
 
 USActionComponent::USActionComponent()
