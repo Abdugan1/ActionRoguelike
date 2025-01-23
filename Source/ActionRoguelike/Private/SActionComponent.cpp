@@ -88,18 +88,24 @@ void USActionComponent::AddAction(AActor* Instigator, TSubclassOf<USAction> Acti
 		{
 			NewAction->StartAction(Instigator);
 		}
+
+		FString DebugMsg = FString::Printf(TEXT("Action: [%s] was added"), *NewAction->GetName());
+		LogOnScreen(this, DebugMsg);
 	}
 }
 
 
 void USActionComponent::RemoveAction(USAction* Action)
 {
-	if (ensure(Action && !Action->IsRunning()))
+	if (!ensure(Action && !Action->IsRunning()))
 	{
 		return;
 	}
 
 	Actions.Remove(Action);
+
+	FString DebugMsg = FString::Printf(TEXT("Action: [%s] was removed"), *Action->GetName());
+	LogOnScreen(this, DebugMsg);
 }
 
 

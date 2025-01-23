@@ -24,6 +24,14 @@ void USAction::StartAction_Implementation(AActor* Instigator)
 
 	RepData.bIsRunning = true;
 	RepData.Instigator = Instigator;
+
+	// Is Server?
+	if (Comp->GetOwnerRole() == ROLE_Authority)
+	{
+		TimeStarted = GetWorld()->TimeSeconds;
+	}
+
+	Comp->OnActionStarted.Broadcast(Comp, this);
 }
 
 
@@ -44,6 +52,8 @@ void USAction::StopAction_Implementation(AActor* Instigator)
 
 	RepData.bIsRunning = false;
 	RepData.Instigator = Instigator;
+
+	Comp->OnActionStopped.Broadcast(Comp, this);
 }
 
 
@@ -103,5 +113,6 @@ void USAction::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetime
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME(USAction, TimeStarted);
 	DOREPLIFETIME(USAction, RepData);
 }

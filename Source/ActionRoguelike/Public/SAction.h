@@ -67,7 +67,6 @@ public:
 protected:
 	UPROPERTY(ReplicatedUsing="OnRep_RepData")
 	FActionRepData RepData;
-	//bool bIsRunning;
 
 	/* Tags added to owning actor when activated, removed when action stops */
 	UPROPERTY(EditDefaultsOnly, Category = "Tags")
@@ -76,4 +75,10 @@ protected:
 	/* Action can only start if OwningActor has none of these Tags applied */
 	UPROPERTY(EditDefaultsOnly, Category = "Tags")
 	FGameplayTagContainer BlockedTags;
+
+	UPROPERTY(Replicated)
+	float TimeStarted;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	UTexture2D* Icon;
 };
