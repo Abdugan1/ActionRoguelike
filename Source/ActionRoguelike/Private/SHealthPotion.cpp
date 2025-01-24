@@ -7,12 +7,12 @@
 #include "SPlayerState.h"
 
 
-static TAutoConsoleVariable<float> CVarCreditsHealthPotionCostAmount{ TEXT("su.CreditsHealthPotionCostAmount"), 20, TEXT("Credits health potion cost amount per a use"), ECVF_Cheat };
-
 
 ASHealthPotion::ASHealthPotion()
 {
 	HealAmount = 50.0f;
+
+	CreditCost = 20;
 }
 
 
@@ -26,14 +26,13 @@ void ASHealthPotion::Interact_Implementation(APawn* InstigatorPawn)
 			return;
 		}
 
-		const float PlayerCredits = PlayerState->GetCredits();
-		const float CreditCost = CVarCreditsHealthPotionCostAmount.GetValueOnGameThread();
+		const int32 PlayerCredits = PlayerState->GetCredits();
 
-		const bool bIsEnoughCredits = PlayerCredits >= CreditCost || FMath::IsNearlyEqual(PlayerCredits, CreditCost);
+		const bool bIsEnoughCredits = PlayerCredits >= CreditCost;
 
 		if (!bIsEnoughCredits)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Not enough credits to use potion. Cost: %f"), CreditCost);
+			UE_LOG(LogTemp, Log, TEXT("Not enough credits to use potion. Cost: %i"), CreditCost);
 			return;
 		}
 
@@ -49,4 +48,16 @@ void ASHealthPotion::Interact_Implementation(APawn* InstigatorPawn)
 		}
 	}
 	ISGameplayInterface::Interact_Implementation(InstigatorPawn);
+}
+
+
+FText ASHealthPotion::GetInteractText_Implementation(APawn* InstigatorPawn)
+{
+	auto AttributeComponent = USAttributeComponent::GetAttributes(InstigatorPawn);
+	if (AttributeComponent && AttributeComponent->IsFullHealth())
+	{
+		return NSLOCTEXT("InteractableActors", "HealthPotion_FullHealthWarning", "Already at full health");
+	}
+
+	return FText::Format(NSLOCTEXT("InteractableActors", "HealthPotion_InteractMessage", "Cost {0} Credits. Restores {1} amount of health."), CreditCost, HealAmount);
 }

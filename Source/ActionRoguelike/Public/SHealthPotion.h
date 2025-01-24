@@ -18,7 +18,12 @@ public:
 
 	virtual void Interact_Implementation(APawn* InstigatorPawn) override;
 
+	virtual FText GetInteractText_Implementation(APawn* InstigatorPawn) override;
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category="Effects")
 	float HealAmount;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effects")
+	int32 CreditCost;
 };
